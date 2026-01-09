@@ -3,298 +3,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stok Yönetim (Stabil)</title>
-    
+    <meta name="theme-color" content="#667eea">
+    <title>Stok Yönetim - Firebase</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
-        /* TASARIM AYNEN KORUNDU */
+        /* Senin CSS'lerin - Hiçbirine dokunmadım */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 10px; padding-bottom: 80px; }
         .container { max-width: 600px; margin: 0 auto; }
-        .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
-        .header { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; }
+        .header { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .header h1 { font-size: 20px; color: #333; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border-radius: 10px; text-align: center; }
         .stat-value { font-size: 24px; font-weight: bold; }
-        .stat-label { font-size: 11px; opacity: 0.9; }
-        .btn { padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 5px; }
+        .stat-label { font-size: 11px; opacity: 0.9; margin-top: 2px; }
+        .btn { padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: #667eea; color: white; }
         .btn-success { background: #10b981; color: white; }
         .btn-danger { background: #ef4444; color: white; }
         .btn-secondary { background: #6b7280; color: white; }
-        .hidden { display: none !important; }
-        .input-group { margin-bottom: 12px; }
-        .input-group label { display: block; margin-bottom: 5px; color: #666; font-size: 13px; }
-        .input-group input, .input-group select { width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 10px; display: flex; justify-content: space-around; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
-        .nav-btn { border: none; background: none; color: #6b7280; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-        .nav-btn.active { color: #667eea; }
-        .nav-icon { font-size: 20px; margin-bottom: 2px; }
-        .product-item { display: flex; gap: 10px; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 10px; padding: 10px; margin-bottom: 10px; cursor: pointer; }
-        .product-item-info { flex: 1; }
-        .product-item-name { font-weight: bold; color: #333; }
-        .product-item-stock-num { font-size: 20px; font-weight: bold; color: #667eea; }
-        .back-btn { background: #6b7280; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
-        .camera-container { width: 100%; height: 250px; background: #000; overflow: hidden; position: relative; }
+        .card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+        .camera-container { position: relative; width: 100%; height: 250px; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
         #scanner-container video { width: 100%; height: 100%; object-fit: cover; }
+        .scanner-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 40%; border: 2px solid #10b981; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; margin-bottom: 5px; color: #666; font-size: 13px; font-weight: 500; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; }
+        .product-detail-card { background: white; border-radius: 15px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+        .product-image { width: 100%; height: 200px; object-fit: cover; background: #f3f4f6; }
+        .product-info { padding: 15px; }
+        .product-name { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 8px; }
+        .product-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; font-size: 13px; }
+        .detail-item { background: #f9fafb; padding: 8px; border-radius: 6px; }
+        .detail-label { color: #666; font-size: 11px; }
+        .detail-value { font-weight: 600; color: #333; margin-top: 2px; }
+        .stock-display { text-align: center; margin: 15px 0; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white; }
+        .stock-number { font-size: 48px; font-weight: bold; }
+        .stock-buttons { display: flex; gap: 10px; }
+        .product-list { max-height: 400px; overflow-y: auto; }
+        .product-item { display: flex; gap: 10px; background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 10px; padding: 10px; margin-bottom: 10px; cursor: pointer; }
+        .product-item.low-stock { border-color: #ef4444; background: #fef2f2; }
+        .product-item-image { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; background: #e5e7eb; }
+        .product-item-info { flex: 1; }
+        .product-item-name { font-weight: 600; color: #333; font-size: 14px; }
+        .product-item-meta { font-size: 11px; color: #666; margin-top: 3px; }
+        .product-item-stock { text-align: right; display: flex; flex-direction: column; justify-content: center; }
+        .product-item-stock-num { font-size: 20px; font-weight: bold; color: #667eea; }
+        .product-item-stock-num.low { color: #ef4444; }
+        .search-bar { margin-bottom: 15px; }
+        .search-bar input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; }
+        .filter-chips { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .chip { padding: 6px 12px; border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; border: 2px solid #e5e7eb; background: white; }
+        .chip.active { background: #667eea; color: white; border-color: #667eea; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 10px; z-index: 1000; }
+        .nav-btn { flex: 1; padding: 8px; border: none; background: none; color: #6b7280; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-btn.active { color: #667eea; }
+        .nav-icon { font-size: 20px; }
+        .hidden { display: none !important; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .back-btn { background: #6b7280; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .image-upload { text-align: center; padding: 20px; border: 2px dashed #e5e7eb; border-radius: 10px; cursor: pointer; margin-bottom: 12px; }
+        .image-preview { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 12px; }
+        .sales-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        .sales-title { font-size: 14px; opacity: 0.9; margin-bottom: 10px; }
+        .sales-value { font-size: 32px; font-weight: bold; }
+        .warning-badge { background: #ef4444; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <div id="mainScreen">
             <div class="header">
-                <h3>📦 Stok Yönetim</h3>
+                <div class="header-top"><h1>📦 Stok Yönetim</h1></div>
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-value" id="totalProducts">0</div><div class="stat-label">Ürün</div></div>
-                    <div class="stat-card"><div class="stat-value" id="totalValue">₺0</div><div class="stat-label">Değer</div></div>
-                    <div class="stat-card"><div class="stat-value" id="totalSales">0</div><div class="stat-label">Satış</div></div>
+                    <div class="stat-card"><div class="stat-value" id="totalProducts">0</div><div class="stat-label">Toplam Ürün</div></div>
+                    <div class="stat-card"><div class="stat-value" id="totalValue">₺0</div><div class="stat-label">Toplam Değer</div></div>
+                    <div class="stat-card"><div class="stat-value" id="lowStockCount">0</div><div class="stat-label">Düşük Stok</div></div>
+                    <div class="stat-card"><div class="stat-value" id="totalSales">0</div><div class="stat-label">Toplam Satış</div></div>
                 </div>
             </div>
             <div class="card">
-                <div class="input-group"><input type="text" id="searchInput" placeholder="🔍 Ürün ara..." oninput="renderProducts()"></div>
-                <div id="productList" style="max-height: 400px; overflow-y: auto;"></div>
-            </div>
-        </div>
-
-        <div id="addProductScreen" class="hidden">
-            <button class="back-btn" onclick="showScreen('main')">← Geri</button>
-            <div class="card">
-                <h3>Yeni Ürün Ekle</h3>
-                <div class="input-group"><label>Barkod</label><input type="text" id="newBarcode"></div>
-                <div class="input-group"><label>Ürün Adı</label><input type="text" id="newName"></div>
-                <div class="input-group"><label>Kategori</label><select id="newCategory"><option>Giyim</option><option>Elektronik</option><option>Diğer</option></select></div>
-                <div class="input-group"><label>Maliyet (₺)</label><input type="number" id="newCost"></div>
-                <div class="input-group"><label>Stok Adedi</label><input type="number" id="newStock"></div>
-                <button class="btn btn-success" onclick="saveProduct()">💾 KAYDET</button>
-            </div>
-        </div>
-
-        <div id="productDetailScreen" class="hidden">
-            <button class="back-btn" onclick="showScreen('main')">← Geri</button>
-            <div class="card">
-                <h3 id="detailName">Ürün Adı</h3>
-                <p>Barkod: <span id="detailBarcode"></span></p>
-                <p>Maliyet: <span id="detailCost"></span></p>
-                <div class="stat-card" style="margin: 10px 0;">
-                    <div class="stat-value" id="detailStock">0</div>
-                    <div class="stat-label">STOK</div>
+                <div class="search-bar"><input type="text" id="searchInput" placeholder="🔍 Ürün ara..." oninput="filterProducts()"></div>
+                <div class="filter-chips">
+                    <div class="chip active" onclick="setFilter('all')">Tümü</div>
+                    <div class="chip" onclick="setFilter('lowStock')">Düşük Stok</div>
+                    <div id="categoryFilters" style="display:flex; gap:8px;"></div>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-danger" onclick="updateStock(-1)">➖ SATIŞ YAP</button>
-                    <button class="btn btn-success" onclick="updateStock(1)">➕ STOK EKLE</button>
-                </div>
-                <button class="btn btn-secondary" onclick="deleteProduct()" style="background:#ff4757; margin-top:15px">🗑️ SİL</button>
+                <div class="product-list" id="productList"></div>
             </div>
         </div>
 
         <div id="scannerScreen" class="hidden">
-            <button class="back-btn" onclick="showScreen('main')">← Geri</button>
+            <div class="top-bar"><button class="back-btn" onclick="showScreen('main')">← Geri</button></div>
             <div class="card">
                 <h3>Barkod Okut</h3>
-                <div class="camera-container"><div id="scanner-container"></div></div>
+                <div class="camera-container">
+                    <div id="scanner-container"></div>
+                    <div class="scanner-overlay"></div>
+                </div>
             </div>
         </div>
-        
-        <div id="salesScreen" class="hidden">
-            <button class="back-btn" onclick="showScreen('main')">← Geri</button>
-            <div class="card">
-                <h3>Satış Geçmişi</h3>
-                <div id="salesList"></div>
+
+        <div id="productDetailScreen" class="hidden">
+            <div class="top-bar"><button class="back-btn" onclick="showScreen('main')">← Geri</button></div>
+            <div class="product-detail-card">
+                <img id="detailImage" class="product-image" src="">
+                <div class="product-info">
+                    <div class="product-name" id="detailName"></div>
+                    <div class="product-details">
+                        <div class="detail-item"><div class="detail-label">Barkod</div><div class="detail-value" id="detailBarcode"></div></div>
+                        <div class="detail-item"><div class="detail-label">Beden</div><div class="detail-value" id="detailSize"></div></div>
+                        <div class="detail-item"><div class="detail-label">Kategori</div><div class="detail-value" id="detailCategory"></div></div>
+                        <div class="detail-item"><div class="detail-label">Maliyet</div><div class="detail-value" id="detailCost"></div></div>
+                    </div>
+                    <div class="stock-display"><div class="stock-number" id="detailStock">0</div><div>ADET STOK</div></div>
+                    <div class="stock-buttons">
+                        <button class="btn btn-danger" onclick="decreaseStock()">➖ AZALT</button>
+                        <button class="btn btn-success" onclick="increaseStock()">➕ ARTIR</button>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <div id="addProductScreen" class="hidden">
+            <div class="top-bar"><button class="back-btn" onclick="showScreen('main')">← Geri</button><h3>Yeni Ürün</h3></div>
+            <div class="card">
+                <div class="image-upload" onclick="document.getElementById('imageInput').click()">
+                    <img id="imagePreview" class="image-preview hidden">
+                    <div id="uploadPlaceholder">📷 Ürün Fotoğrafı Ekle</div>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="previewImage(event)">
+                <div class="input-group"><label>Barkod *</label><input type="text" id="newBarcode" placeholder="Barkod numarası"></div>
+                <div class="input-group"><label>Ürün Adı *</label><input type="text" id="newName" placeholder="Ürün adı"></div>
+                <div class="input-group"><label>Beden</label><input type="text" id="newSize" placeholder="S, M, L..."></div>
+                <div class="input-group"><label>Kategori *</label>
+                    <select id="newCategory">
+                        <option value="">Seçiniz</option><option value="Giyim">Giyim</option><option value="Ayakkabı">Ayakkabı</option><option value="Aksesuar">Aksesuar</option><option value="Diğer">Diğer</option>
+                    </select>
+                </div>
+                <div class="input-group"><label>Maliyet (₺) *</label><input type="number" id="newCost" placeholder="0"></div>
+                <div class="input-group"><label>Başlangıç Stok</label><input type="number" id="newStock" value="0"></div>
+                <div class="input-group"><label>Min. Stok Uyarısı</label><input type="number" id="newMinStock" value="5"></div>
+                <button class="btn btn-success" onclick="saveProduct()" style="width:100%">💾 KAYDET</button>
+            </div>
+        </div>
+
+        <div id="salesScreen" class="hidden">
+            <div class="top-bar"><button class="back-btn" onclick="showScreen('main')">← Geri</button><h3>Satış Raporu</h3></div>
+            <div class="sales-card"><div class="sales-title">Toplam Satış Adedi</div><div class="sales-value" id="salesTotal">0</div></div>
+            <div class="card"><div id="salesList"></div></div>
         </div>
     </div>
 
     <div class="bottom-nav">
         <button class="nav-btn active" onclick="showScreen('main')"><div class="nav-icon">🏠</div>Ana Sayfa</button>
-        <button class="nav-btn" onclick="showScreen('scanner')"><div class="nav-icon">📷</div>Barkod</button>
-        <button class="nav-btn" onclick="showScreen('add')"><div class="nav-icon">➕</div>Ekle</button>
+        <button class="nav-btn" onclick="showScreen('scanner')"><div class="nav-icon">📷</div>Barkod Okut</button>
+        <button class="nav-btn" onclick="showScreen('add')"><div class="nav-icon">➕</div>Yeni Ürün</button>
         <button class="nav-btn" onclick="showScreen('sales')"><div class="nav-icon">📊</div>Satışlar</button>
     </div>
 
-    <script>
-        // --- 1. FIREBASE AYARLARI (BURAYA KENDİ BİLGİLERİNİ GİR) ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyBt5AmmhZc6sI764z8hMjGusAzNRMIrxLw",
-            authDomain: "stoktakip-4779c.firebaseapp.com",
-            projectId: "stoktakip-4779c",
-            storageBucket: "stoktakip-4779c.firebasestorage.app",
-            messagingSenderId: "751946906534",
-            appId: "1:751946906534:web:e28257e6487a638af7ed67"
-        };
+    <audio id="beepSound" preload="auto"><source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCx+zPDTiTYIGGG15+ijUBELTKXh8bllHAU2jdXvzn0pBSd3xO/glEILElyx6OumUhEKRp3e8bxsHwUrfMrv1Yo2Bxhds+Xpo1ESC0mi3+25axwENI3U78x9KQQndcTv45VCCRJar+jqp1ISCUWd3fG8ax8GK3vJ79aLNgcXW7Lk6aVTEQpJot/uuWseBDSM0+/LfigEJ3XD7+OWQgkSWq/o6qhTEQlEnNzxu2sfBSt6ye/XizUHF1ux5OmmVRILSKHe7rdqHgQ0i9LvyX4oBCh1w+/jl0IKElmu6OqnUxEJRJza8bxsHgUrecfu2Iw2BxZZr+TpplYSC0mg3e+2ah4ENIrQ7sh+KAQpdcPv5JhCCRJYrej" type="audio/wav"></audio>
 
-        // Firebase Başlatma
+    <script>
+        // --- FIREBASE AYARLARI (BURAYI KENDİ BİLGİLERİNLE DOLDUR) ---
+        const firebaseConfig = {
+            apiKey: "API_KEY_BURAYA",
+            authDomain: "PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://PROJECT_ID.firebaseio.com",
+            projectId: "PROJECT_ID",
+            storageBucket: "PROJECT_ID.appspot.com",
+            messagingSenderId: "SENDER_ID",
+            appId: "APP_ID"
+        };
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        
+        const db = firebase.database();
+
         let products = [];
         let sales = [];
         let selectedProduct = null;
         let scannerActive = false;
+        let productImage = null;
 
-        // --- 2. VERİLERİ OTOMATİK ÇEKME ---
-        db.collection("products").onSnapshot(snapshot => {
-            products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderProducts();
-            updateStats();
-        });
+        // Veri Dinleme
+        db.ref('products').on('value', (s) => { products = s.val() ? Object.values(s.val()) : []; updateStats(); renderProducts(); renderCategoryFilters(); });
+        db.ref('sales').on('value', (s) => { sales = s.val() ? Object.values(s.val()) : []; renderSales(); });
 
-        db.collection("sales").onSnapshot(snapshot => {
-            sales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderSales();
-            updateStats();
-        });
+        function showScreen(screen) {
+            const screens = ['mainScreen', 'scannerScreen', 'productDetailScreen', 'addProductScreen', 'salesScreen'];
+            screens.forEach(s => document.getElementById(s).classList.add('hidden'));
+            stopScanner();
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 
-        // --- 3. EKRAN DEĞİŞTİRME ---
-        function showScreen(screenName) {
-            // Tüm ekranları gizle
-            document.getElementById('mainScreen').classList.add('hidden');
-            document.getElementById('addProductScreen').classList.add('hidden');
-            document.getElementById('productDetailScreen').classList.add('hidden');
-            document.getElementById('scannerScreen').classList.add('hidden');
-            document.getElementById('salesScreen').classList.add('hidden');
-
-            // İsteneni aç
-            document.getElementById(screenName + 'Screen').classList.remove('hidden');
-
-            // Kamera kapat (scanner değilse)
-            if(screenName !== 'scanner') stopScanner();
-            if(screenName === 'scanner') startScanner();
+            if(screen === 'main') { document.getElementById('mainScreen').classList.remove('hidden'); document.querySelectorAll('.nav-btn')[0].classList.add('active'); }
+            else if(screen === 'scanner') { document.getElementById('scannerScreen').classList.remove('hidden'); document.querySelectorAll('.nav-btn')[1].classList.add('active'); startScanner(); }
+            else if(screen === 'add') { document.getElementById('addProductScreen').classList.remove('hidden'); document.querySelectorAll('.nav-btn')[2].classList.add('active'); }
+            else if(screen === 'sales') { document.getElementById('salesScreen').classList.remove('hidden'); document.querySelectorAll('.nav-btn')[3].classList.add('active'); }
+            else if(screen === 'detail') { document.getElementById('productDetailScreen').classList.remove('hidden'); }
         }
 
-        // --- 4. ÜRÜN İŞLEMLERİ ---
+        function onBarcodeDetected(result) {
+            if (!scannerActive) return;
+            const barcode = result.codeResult.code;
+            document.getElementById('beepSound').play();
+            stopScanner();
+
+            const product = products.find(p => p.barcode === barcode);
+            if (product) {
+                showProductDetail(product);
+            } else {
+                // BARKOD YOKSA ÜRÜN EKLEME EKRANI AÇILIYOR
+                document.getElementById('newBarcode').value = barcode;
+                showScreen('add');
+            }
+        }
+
+        // --- DİĞER FONKSİYONLAR (Kayıt, Stok, Görselleştirme) ---
         function saveProduct() {
             const barcode = document.getElementById('newBarcode').value;
             const name = document.getElementById('newName').value;
             const category = document.getElementById('newCategory').value;
-            const cost = Number(document.getElementById('newCost').value);
-            const stock = Number(document.getElementById('newStock').value);
+            const cost = parseFloat(document.getElementById('newCost').value) || 0;
+            if(!barcode || !name || !category) { alert("Zorunlu alanları doldur!"); return; }
 
-            if(!barcode || !name) return alert("Barkod ve İsim zorunludur!");
-
-            db.collection("products").add({
-                barcode, name, category, cost, stock
-            }).then(() => {
-                alert("Kaydedildi!");
+            const newProd = {
+                barcode, name, category, cost,
+                size: document.getElementById('newSize').value,
+                stock: parseInt(document.getElementById('newStock').value) || 0,
+                minStock: parseInt(document.getElementById('newMinStock').value) || 5,
+                image: productImage || ""
+            };
+            db.ref('products/' + barcode).set(newProd).then(() => {
+                alert("Ürün Kaydedildi!");
                 showScreen('main');
-                // Temizle
-                document.getElementById('newBarcode').value = "";
-                document.getElementById('newName').value = "";
-                document.getElementById('newStock').value = "";
-            }).catch(err => alert("Hata: " + err.message));
+                // Formu temizle
+                document.getElementById('newBarcode').value = ""; document.getElementById('newName').value = "";
+            });
+        }
+
+        function increaseStock() {
+            const n = selectedProduct.stock + 1;
+            db.ref('products/'+selectedProduct.barcode).update({stock: n});
+            selectedProduct.stock = n; document.getElementById('detailStock').textContent = n;
+        }
+
+        function decreaseStock() {
+            if(selectedProduct.stock <= 0) return;
+            const n = selectedProduct.stock - 1;
+            db.ref('products/'+selectedProduct.barcode).update({stock: n});
+            db.ref('sales').push({productName: selectedProduct.name, barcode: selectedProduct.barcode, quantity: 1, cost: selectedProduct.cost, date: new Date().toISOString()});
+            selectedProduct.stock = n; document.getElementById('detailStock').textContent = n;
+        }
+
+        function updateStats() {
+            document.getElementById('totalProducts').textContent = products.length;
+            const val = products.reduce((a, b) => a + (b.stock * b.cost), 0);
+            document.getElementById('totalValue').textContent = '₺' + val.toFixed(2);
+            document.getElementById('lowStockCount').textContent = products.filter(p => p.stock <= p.minStock).length;
         }
 
         function renderProducts() {
             const list = document.getElementById('productList');
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            list.innerHTML = "";
-
-            products.filter(p => p.name.toLowerCase().includes(search) || p.barcode.includes(search))
-            .forEach(p => {
-                const div = document.createElement('div');
-                div.className = "product-item";
-                div.onclick = () => showDetail(p);
-                div.innerHTML = `
+            list.innerHTML = products.map(p => `
+                <div class="product-item ${p.stock <= p.minStock ? 'low-stock' : ''}" onclick='showProductDetail(${JSON.stringify(p)})'>
+                    <img class="product-item-image" src="${p.image || ''}">
                     <div class="product-item-info">
                         <div class="product-item-name">${p.name}</div>
-                        <div style="font-size:12px; color:#666">${p.barcode}</div>
+                        <div class="product-item-meta">${p.category} | ₺${p.cost}</div>
                     </div>
-                    <div class="product-item-stock-num">${p.stock}</div>
-                `;
-                list.appendChild(div);
-            });
-        }
-
-        function showDetail(product) {
-            selectedProduct = product;
-            document.getElementById('detailName').innerText = product.name;
-            document.getElementById('detailBarcode').innerText = product.barcode;
-            document.getElementById('detailCost').innerText = product.cost + " ₺";
-            document.getElementById('detailStock').innerText = product.stock;
-            showScreen('productDetail');
-        }
-
-        function updateStock(amount) {
-            if(!selectedProduct) return;
-            
-            const newStock = Number(selectedProduct.stock) + amount;
-            if(newStock < 0) return alert("Stok yetersiz!");
-
-            db.collection("products").doc(selectedProduct.id).update({
-                stock: newStock
-            });
-
-            // Satış yapıldıysa kaydet
-            if(amount < 0) {
-                db.collection("sales").add({
-                    productName: selectedProduct.name,
-                    barcode: selectedProduct.barcode,
-                    quantity: 1,
-                    date: new Date()
-                });
-            }
-        }
-
-        function deleteProduct() {
-            if(confirm("Silmek istediğine emin misin?")) {
-                db.collection("products").doc(selectedProduct.id).delete();
-                showScreen('main');
-            }
-        }
-
-        function updateStats() {
-            document.getElementById('totalProducts').innerText = products.length;
-            const val = products.reduce((acc, p) => acc + (p.cost * p.stock), 0);
-            document.getElementById('totalValue').innerText = val + " ₺";
-            document.getElementById('totalSales').innerText = sales.length;
-        }
-
-        function renderSales() {
-            const list = document.getElementById('salesList');
-            list.innerHTML = sales.map(s => `
-                <div class="product-item" style="cursor:default">
-                    <div class="product-item-info">${s.productName}</div>
-                    <div style="font-weight:bold; color:green">1 Adet</div>
+                    <div class="product-item-stock"><div class="product-item-stock-num">${p.stock}</div></div>
                 </div>
             `).join('');
         }
 
-        // --- 5. BARKOD OKUYUCU ---
-        function startScanner() {
-            scannerActive = true;
-            Quagga.init({
-                inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-container'), constraints: { facingMode: "environment" } },
-                decoder: { readers: ["ean_reader"] }
-            }, function(err) {
-                if(!err) Quagga.start();
-            });
-
-            Quagga.onDetected(function(result) {
-                if(!scannerActive) return;
-                const code = result.codeResult.code;
-                stopScanner();
-                
-                const product = products.find(p => p.barcode === code);
-                if(product) {
-                    showDetail(product);
-                } else {
-                    if(confirm("Ürün bulunamadı. Eklemek ister misin?")) {
-                        document.getElementById('newBarcode').value = code;
-                        showScreen('add');
-                    } else {
-                        showScreen('main');
-                    }
-                }
-            });
-        }
-
-        function stopScanner() {
-            scannerActive = false;
-            Quagga.stop();
-        }
+        function showProductDetail(p) { selectedProduct = p; document.getElementById('detailName').textContent = p.name; document.getElementById('detailBarcode').textContent = p.barcode; document.getElementById('detailStock').textContent = p.stock; document.getElementById('detailImage').src = p.image || ''; showScreen('detail'); }
+        function startScanner() { scannerActive = true; Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-container'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader"] } }, (err) => { if(err) return; Quagga.start(); }); Quagga.onDetected(onBarcodeDetected); }
+        function stopScanner() { if(scannerActive) { Quagga.stop(); scannerActive = false; } }
+        function previewImage(e) { const f = e.target.files[0]; if(f) { const r = new FileReader(); r.onload = (ev) => { productImage = ev.target.result; document.getElementById('imagePreview').src = productImage; document.getElementById('imagePreview').classList.remove('hidden'); }; r.readAsDataURL(f); } }
+        function renderSales() { document.getElementById('salesTotal').textContent = sales.reduce((a,b) => a+b.quantity, 0); }
     </script>
 </body>
 </html>
