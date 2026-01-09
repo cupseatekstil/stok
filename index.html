@@ -1,376 +1,802 @@
 <!DOCTYPE html>
+
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#667eea">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU3RvayBZw7ZuZXRpbSIsInNob3J0X25hbWUiOiJTdG9rIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmZmZmZmYiLCJ0aGVtZV9jb2xvciI6IiM2NjdlZWEiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJyUzRSUzQ3RleHQgeT0nLjllbScgZm9udC1zaXplPSc5MCclM0Xwn5OmJTNDL3RleHQlM0UlM0Mvc3ZnJTNFIiwic2l6ZXMiOiI1MTJ4NTEyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
-    <title>Stok Yönetim</title>
+    <title>Stok Yönetim v2 - Firebase</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-database-compat.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
+```
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 10px;
+        padding-bottom: 80px;
+    }
+    
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .header {
+        background: white;
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .header h1 {
+        font-size: 20px;
+        color: #333;
+    }
+    
+    .sync-status {
+        font-size: 11px;
+        color: #10b981;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .sync-status.syncing {
+        color: #f59e0b;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    
+    .stat-label {
+        font-size: 11px;
+        opacity: 0.9;
+        margin-top: 2px;
+    }
+    
+    .btn {
+        padding: 12px;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+    
+    .btn-success {
+        background: #10b981;
+        color: white;
+    }
+    
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+    }
+    
+    .card {
+        background: white;
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    
+    .camera-container {
+        position: relative;
+        width: 100%;
+        height: 250px;
+        background: #000;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 15px;
+    }
+    
+    #scanner-container video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .scanner-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        height: 40%;
+        border: 2px solid #10b981;
+        border-radius: 10px;
+        box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+    }
+    
+    .input-group {
+        margin-bottom: 12px;
+    }
+    
+    .input-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #666;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    
+    .input-group input, .input-group select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    
+    .input-group input:focus, .input-group select:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .product-detail-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    
+    .product-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background: #f3f4f6;
+    }
+    
+    .product-info {
+        padding: 15px;
+    }
+    
+    .product-name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    
+    .product-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+        font-size: 13px;
+    }
+    
+    .detail-item {
+        background: #f9fafb;
+        padding: 8px;
+        border-radius: 6px;
+    }
+    
+    .detail-label {
+        color: #666;
+        font-size: 11px;
+    }
+    
+    .detail-value {
+        font-weight: 600;
+        color: #333;
+        margin-top: 2px;
+    }
+    
+    .stock-display {
+        text-align: center;
+        margin: 15px 0;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+        color: white;
+    }
+    
+    .stock-number {
+        font-size: 48px;
+        font-weight: bold;
+    }
+    
+    .stock-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .stock-buttons .btn {
+        flex: 1;
+    }
+    
+    .product-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .product-item {
+        display: flex;
+        gap: 10px;
+        background: #f9fafb;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .product-item:hover {
+        border-color: #667eea;
+    }
+    
+    .product-item.low-stock {
+        border-color: #ef4444;
+        background: #fef2f2;
+    }
+    
+    .product-item-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #e5e7eb;
+    }
+    
+    .product-item-info {
+        flex: 1;
+    }
+    
+    .product-item-name {
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    .product-item-meta {
+        font-size: 11px;
+        color: #666;
+        margin-top: 3px;
+    }
+    
+    .product-item-stock {
+        text-align: right;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .product-item-stock-num {
+        font-size: 20px;
+        font-weight: bold;
+        color: #667eea;
+    }
+    
+    .product-item-stock-num.low {
+        color: #ef4444;
+    }
+    
+    .search-bar {
+        margin-bottom: 15px;
+    }
+    
+    .search-bar input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+    
+    .filter-chips {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 15px;
+        overflow-x: auto;
+        padding-bottom: 5px;
+    }
+    
+    .chip {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        white-space: nowrap;
+        cursor: pointer;
+        border: 2px solid #e5e7eb;
+        background: white;
+    }
+    
+    .chip.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-around;
+        padding: 10px;
+    }
+    
+    .nav-btn {
+        flex: 1;
+        padding: 8px;
+        border: none;
+        background: none;
+        color: #6b7280;
+        font-size: 11px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .nav-btn.active {
+        color: #667eea;
+    }
+    
+    .nav-icon {
+        font-size: 20px;
+    }
+    
+    .hidden {
+        display: none !important;
+    }
+    
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .back-btn {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+    }
+    
+    .image-upload {
+        text-align: center;
+        padding: 20px;
+        border: 2px dashed #e5e7eb;
+        border-radius: 10px;
+        cursor: pointer;
+        margin-bottom: 12px;
+    }
+    
+    .image-preview {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 12px;
+    }
+    
+    .sales-card {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .sales-title {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 10px;
+    }
+    
+    .sales-value {
+        font-size: 32px;
+        font-weight: bold;
+    }
+    
+    .warning-badge {
+        background: #ef4444;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        margin-left: 8px;
+    }
+    
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+    
+    .loading-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+    }
+    
+    .spinner {
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="container">
+        <!-- Ana Ekran -->
+        <div id="mainScreen">
+            <div class="header">
+                <div class="header-top">
+                    <h1>📦 Stok Yönetim v2</h1>
+                    <div class="sync-status" id="syncStatus">
+                        <span>●</span>
+                        <span id="syncText">Firebase</span>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalProducts">0</div>
+                        <div class="stat-label">Toplam Ürün</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalValue">₺0</div>
+                        <div class="stat-label">Toplam Değer</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="lowStockCount">0</div>
+                        <div class="stat-label">Düşük Stok</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalSales">0</div>
+                        <div class="stat-label">Toplam Satış</div>
+                    </div>
+                </div>
+            </div>
+
+```
+        <div class="card">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Ürün ara..." oninput="filterProducts()">
+            </div>
+            <div class="filter-chips" id="filterChips">
+                <div class="chip active" onclick="setFilter('all')">Tümü</div>
+                <div class="chip" onclick="setFilter('lowStock')">Düşük Stok</div>
+            </div>
+            <div class="product-list" id="productList"></div>
+        </div>
+    </div>
+    
+    <!-- Barkod Okuyucu Ekranı -->
+    <div id="scannerScreen" class="hidden">
+        <div class="top-bar">
+            <button class="back-btn" onclick="closeScanner()">← Geri</button>
+        </div>
+        <div class="card">
+            <h3 style="margin-bottom: 15px;">Barkod Okut</h3>
+            <div class="camera-container">
+                <div id="scanner-container"></div>
+                <div class="scanner-overlay"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ürün Detay Ekranı -->
+    <div id="productDetailScreen" class="hidden">
+        <div class="top-bar">
+            <button class="back-btn" onclick="closeProductDetail()">← Geri</button>
+        </div>
+        <div class="product-detail-card">
+            <img id="detailImage" class="product-image" src="" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23f3f4f6%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2240%22%3E📦%3C/text%3E%3C/svg%3E'">
+            <div class="product-info">
+                <div class="product-name" id="detailName"></div>
+                <div class="product-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Barkod</div>
+                        <div class="detail-value" id="detailBarcode"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Beden</div>
+                        <div class="detail-value" id="detailSize"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Kategori</div>
+                        <div class="detail-value" id="detailCategory"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Maliyet</div>
+                        <div class="detail-value" id="detailCost"></div>
+                    </div>
+                </div>
+                <div class="stock-display">
+                    <div class="stock-number" id="detailStock">0</div>
+                    <div>ADET STOK</div>
+                </div>
+                <div class="stock-buttons">
+                    <button class="btn btn-danger" onclick="decreaseStock()">➖ AZALT</button>
+                    <button class="btn btn-success" onclick="increaseStock()">➕ ARTIR</button>
+                </div>
+                <button class="btn btn-secondary" onclick="editProduct()" style="width:100%; margin-top: 10px;">✏️ Ürünü Düzenle</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ürün Ekleme/Düzenleme Ekranı -->
+    <div id="addProductScreen" class="hidden">
+        <div class="top-bar">
+            <button class="back-btn" onclick="closeAddProduct()">← Geri</button>
+            <h3 id="formTitle">Yeni Ürün</h3>
+        </div>
+        <div class="card">
+            <div class="image-upload" onclick="document.getElementById('imageInput').click()">
+                <img id="imagePreview" class="image-preview hidden">
+                <div id="uploadPlaceholder">📷 Ürün Fotoğrafı Ekle</div>
+            </div>
+            <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="previewImage(event)">
+            
+            <div class="input-group">
+                <label>Barkod *</label>
+                <input type="text" id="newBarcode" placeholder="Barkod numarası">
+            </div>
+            <div class="input-group">
+                <label>Ürün Adı *</label>
+                <input type="text" id="newName" placeholder="Ürün adı">
+            </div>
+            <div class="input-group">
+                <label>Beden</label>
+                <input type="text" id="newSize" placeholder="S, M, L, XL veya 38, 40, 42...">
+            </div>
+            <div class="input-group">
+                <label>Kategori *</label>
+                <select id="newCategory">
+                    <option value="">Kategori Seç</option>
+                    <option value="Giyim">Giyim</option>
+                    <option value="Ayakkabı">Ayakkabı</option>
+                    <option value="Aksesuar">Aksesuar</option>
+                    <option value="Elektronik">Elektronik</option>
+                    <option value="Gıda">Gıda</option>
+                    <option value="İçecek">İçecek</option>
+                    <option value="Kozmetik">Kozmetik</option>
+                    <option value="Temizlik">Temizlik</option>
+                    <option value="Diğer">Diğer</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Maliyet (₺) *</label>
+                <input type="number" id="newCost" placeholder="0" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Başlangıç Stok</label>
+                <input type="number" id="newStock" placeholder="0" value="0">
+            </div>
+            <div class="input-group">
+                <label>Minimum Stok Uyarısı</label>
+                <input type="number" id="newMinStock" placeholder="5" value="5">
+            </div>
+            <button class="btn btn-success" onclick="saveProduct()" style="width:100%; margin-bottom: 10px;">💾 KAYDET</button>
+            <button class="btn btn-danger" id="deleteBtn" onclick="deleteProduct()" style="width:100%; display:none;">🗑️ ÜRÜNÜ SİL</button>
+        </div>
+    </div>
+    
+    <!-- Satış Raporu Ekranı -->
+    <div id="salesScreen" class="hidden">
+        <div class="top-bar">
+            <button class="back-btn" onclick="closeSales()">← Geri</button>
+            <h3>Satış Raporu</h3>
+        </div>
+        <div class="sales-card">
+            <div class="sales-title">Toplam Satış Adedi</div>
+            <div class="sales-value" id="salesTotal">0</div>
+        </div>
+        <div class="card">
+            <h3 style="margin-bottom: 15px;">Satılan Ürünler</h3>
+            <div id="salesList" style="max-height: 500px; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <div style="color: #333; font-weight: 600;">Firebase'e Bağlanıyor...</div>
+    </div>
+</div>
+
+<!-- Alt Navigasyon -->
+<div class="bottom-nav">
+    <button class="nav-btn active" onclick="showScreen('main')">
+        <div class="nav-icon">🏠</div>
+        Ana Sayfa
+    </button>
+    <button class="nav-btn" onclick="showScreen('scanner')">
+        <div class="nav-icon">📷</div>
+        Barkod Okut
+    </button>
+    <button class="nav-btn" onclick="showScreen('add')">
+        <div class="nav-icon">➕</div>
+        Yeni Ürün
+    </button>
+    <button class="nav-btn" onclick="showScreen('sales')">
+        <div class="nav-icon">📊</div>
+        Satışlar
+    </button>
+</div>
+
+<audio id="beepSound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBCx+zPDTiTYIGGG15+ijUBELTKXh8bllHAU2jdXvzn0pBSd3xO/glEILElyx6OumUhEKRp3e8bxsHwUrfMrv1Yo2Bxhds+Xpo1ESC0mi3+25axwENI3U78x9KQQndcTv45VCCRJar+jqp1ISCUWd3fG8ax8GK3vJ79aLNgcXW7Lk6aVTEQpJot/uuWseBDSM0+/LfigEJ3XD7+OWQgkSWq/o6qhTEQlEnNzxu2sfBSt6ye/XizUHF1ux5OmmVRILSKHe7rdqHgQ0i9LvyX4oBCh1w+/jl0IKElmu6OqnUxEJRJza8bxsHgUrecfu2Iw2BxZZr+TpplYSC0mg3e+2ah4ENIrQ7sh+KAQpdcPv5JhCCRJYrej" type="audio/wav">
+</audio>
+
+<script>
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBt5AmmhZc6sI764z8hMjGusAzNRMIrxLw",
+        authDomain: "stoktakip-4779c.firebaseapp.com",
+        databaseURL: "https://stoktakip-4779c-default-rtdb.firebaseio.com",
+        projectId: "stoktakip-4779c",
+        storageBucket: "stoktakip-4779c.firebasestorage.app",
+        messagingSenderId: "751946906534",
+        appId: "1:751946906534:web:e28257e6487a638af7ed67"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    
+    let products = [];
+    let sales = [];
+    let selectedProduct = null;
+    let scannerActive = false;
+    let currentFilter = 'all';
+    let productImage = null;
+    let editingProduct = null;
+    
+    // Firebase'den veri yükle
+    function loadDataFromFirebase() {
+        setSyncStatus('syncing', 'Yükleniyor...');
         
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 10px;
-            padding-bottom: 80px;
+        database.ref('products').on('value', (snapshot) => {
+            const data = snapshot.val();
+            products = data ? Object.values(data) : [];
+            updateStats();
+            renderProducts();
+            renderCategoryFilters();
+            setSyncStatus('synced', 'Senkronize');
+            hideLoading();
+        });
+        
+        database.ref('sales').on('value', (snapshot) => {
+            const data = snapshot.val();
+            sales = data ? Object.values(data) : [];
+            updateStats();
+            renderSales();
+        });
+    }
+    
+    function setSyncStatus(status, text) {
+        const syncStatus = document.getElementById('syncStatus');
+        const syncText = document.getElementById('syncText');
+        syncStatus.className = 'sync-status';
+        if (status === 'syncing') {
+            syncStatus.classList.add('syncing');
         }
+        syncText.textContent = text;
+    }
+    
+    function hideLoading() {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+    
+    function playBeep() {
+        const beep = document.getElementById('beepSound');
+        beep.currentTime = 0;
+        beep.play().catch(e => console.log('Ses çalınamadı'));
+    }
+    
+    function updateStats() {
+        const totalProducts = products.length;
+        const totalValue = products.reduce((sum, p) => sum + (p.stock * p.cost), 0);
+        const lowStockCount = products.filter(p => p.stock <= p.minStock).length;
+        const totalSales = sales.reduce((sum, s) => sum + s.quantity, 0);
         
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
+        document.getElementById('totalProducts').textContent = totalProducts;
+        document.getElementById('totalValue').textContent = '₺' + totalValue.toFixed(2);
+        document.getElementById('lowStockCount').textContent = lowStockCount;
+        document.getElementById('totalSales').textContent = totalSales;
+    }
+    
+    function renderProducts() {
+        const list = document.getElementById('productList');
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         
-        .header {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
+        let filtered = products.filter(p => {
+            const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
+                                p.barcode.includes(searchTerm);
+            
+            if (currentFilter === 'all') return matchesSearch;
+            if (currentFilter === 'lowStock') return matchesSearch && p.stock <= p.minStock;
+            return matchesSearch && p.category === currentFilter;
+        });
         
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .header h1 {
-            font-size: 20px;
-            color: #333;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
-        .stat-label {
-            font-size: 11px;
-            opacity: 0.9;
-            margin-top: 2px;
-        }
-        
-        .btn {
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-        
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-        
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-        
-        .camera-container {
-            position: relative;
-            width: 100%;
-            height: 250px;
-            background: #000;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-        
-        #scanner-container video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .scanner-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            height: 40%;
-            border: 2px solid #10b981;
-            border-radius: 10px;
-            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
-        }
-        
-        .input-group {
-            margin-bottom: 12px;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #666;
-            font-size: 13px;
-            font-weight: 500;
-        }
-        
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        
-        .input-group input:focus, .input-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .product-detail-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-        
-        .product-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background: #f3f4f6;
-        }
-        
-        .product-info {
-            padding: 15px;
-        }
-        
-        .product-name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        
-        .product-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-            font-size: 13px;
-        }
-        
-        .detail-item {
-            background: #f9fafb;
-            padding: 8px;
-            border-radius: 6px;
-        }
-        
-        .detail-label {
-            color: #666;
-            font-size: 11px;
-        }
-        
-        .detail-value {
-            font-weight: 600;
-            color: #333;
-            margin-top: 2px;
-        }
-        
-        .stock-display {
-            text-align: center;
-            margin: 15px 0;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            color: white;
-        }
-        
-        .stock-number {
-            font-size: 48px;
-            font-weight: bold;
-        }
-        
-        .stock-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .stock-buttons .btn {
-            flex: 1;
-        }
-        
-        .product-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .product-item {
-            display: flex;
-            gap: 10px;
-            background: #f9fafb;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .product-item:hover {
-            border-color: #667eea;
-        }
-        
-        .product-item.low-stock {
-            border-color: #ef4444;
-            background: #fef2f2;
-        }
-        
-        .product-item-image {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 8px;
-            background: #e5e7eb;
-        }
-        
-        .product-item-info {
-            flex: 1;
-        }
-        
-        .product-item-name {
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-        }
-        
-        .product-item-meta {
-            font-size: 11px;
-            color: #666;
-            margin-top: 3px;
-        }
-        
-        .product-item-stock {
-            text-align: right;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        
-        .product-item-stock-num {
-            font-size: 20px;
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        .product-item-stock-num.low {
-            color: #ef4444;
-        }
-        
-        .search-bar {
-            margin-bottom: 15px;
-        }
-        
-        .search-bar input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 14px;
-        }
-        
-        .filter-chips {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
-        
-        .chip {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            white-space: nowrap;
-            cursor: pointer;
-            border: 2px solid #e5e7eb;
-            background: white;
-        }
-        
-        .chip.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-        
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px;
-        }
-        
-        .nav-btn {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            background: none;
-            color: #6b7280;
-            font-size: 11px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
+        if (filtered.length === 0) {
+            list.innerHTML = '<p style="text-align: center; color: #666; padding: 40px 0;">Ürün bulunamadı</p>';
+```
         }
         
         .nav-btn.active {
@@ -1002,3 +1428,4 @@
     </script>
 </body>
 </html>
+
