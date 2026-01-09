@@ -1000,29 +1000,5 @@
         renderProducts();
         renderCategoryFilters();
     </script>
-<script type="module">
-  // Firebase SDK'larını CDN üzerinden içe aktarıyoruz
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  
-  // Eğer Realtime Database kullanacaksanız bunu da eklemelisiniz:
-  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-  // Sizin paylaştığınız yapılandırma bilgileriniz
-  const firebaseConfig = {
-    apiKey: "AIzaSyBt5AmmhZc6sI764z8hMjGusAzNRMIrxLw",
-    authDomain: "stoktakip-4779c.firebaseapp.com",
-    databaseURL: "https://stoktakip-4779c-default-rtdb.firebaseio.com",
-    projectId: "stoktakip-4779c",
-    storageBucket: "stoktakip-4779c.firebasestorage.app",
-    messagingSenderId: "751946906534",
-    appId: "1:751946906534:web:e28257e6487a638af7ed67"
-  };
-
-  // Firebase'i başlat
-  const app = initializeApp(firebaseConfig);
-  const database = getDatabase(app);
-
-  console.log("Firebase Stok Takip projesi hazır!");
-</script>+
 </body>
 </html>
