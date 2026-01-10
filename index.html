@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Stok Pro v10.0 - Perfect</title>
+    <title>Stok Pro v10.1 - Quick Sale</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -79,24 +79,29 @@
         @keyframes scanMove { 0%, 100% { transform: translateY(-100px); opacity: 0; } 50% { transform: translateY(100px); opacity: 1; } }
         #scan-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
         .btn-scan-start { background: #fff; color: #000; padding: 18px 30px; border-radius: 50px; font-weight: 800; font-size: 16px; border: none; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(255,255,255,0.2); cursor: pointer; }
-        
-        /* GÜNCELLENEN VAZGEÇ BUTONU (YUKARI ALINDI) */
-        .btn-cancel-scan { 
-            position: absolute; 
-            bottom: 120px; /* 30px'den 120px'e çıkarıldı - YUKARI ALINDI */
-            left: 50%; transform: translateX(-50%); 
-            background: #000; color: #fff; 
-            padding: 15px 40px; border-radius: 30px; 
-            font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); 
-            z-index: 999; display: none; cursor: pointer; 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-        }
+        .btn-cancel-scan { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 15px 40px; border-radius: 30px; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); z-index: 999; display: none; cursor: pointer; box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
         .btn-cancel-scan:active { transform: translateX(-50%) scale(0.95); }
 
-        /* --- LIST & ITEMS --- */
+        /* --- LIST & ITEMS & NEW BUTTON --- */
         .item-card { background: var(--card); border-radius: 20px; padding: 15px; display: flex; align-items: center; gap: 16px; margin-bottom: 12px; border: 0.5px solid var(--border); transition: 0.3s; }
         .item-img { width: 60px; height: 60px; border-radius: 14px; object-fit: cover; background: var(--input-bg); }
         .item-info b { font-size: 16px; font-weight: 700; display: block; }
+        
+        /* YENİ: -1 BUTONU STİLİ */
+        .btn-minus {
+            background: rgba(255, 59, 48, 0.15); /* Hafif kırmızı zemin */
+            color: var(--red);
+            border: none;
+            width: 35px; height: 35px;
+            border-radius: 10px;
+            font-weight: 800; font-size: 13px;
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-right: 8px; /* Stok sayısının yanında boşluk */
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-minus:active { transform: scale(0.9); background: var(--red); color: #fff; }
+
         .input-group { background: var(--input-bg); border-radius: 14px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); }
         .input-group input { background: none; border: none; outline: none; width: 100%; font-size: 16px; font-weight: 500; color: var(--text-main); }
         .input-group i { color: var(--label); }
@@ -253,7 +258,6 @@
         const db = firebase.database();
         let products = [], logs = [], currentPin = "", tempImg = "";
         
-        // --- SCANNER KİLİDİ ---
         let lastScanTime = 0;
 
         function enterPin(n) { if(currentPin.length < 6) { currentPin += n; updateDots(); if(currentPin.length === 6) setTimeout(submitPin, 200); } }
@@ -274,7 +278,7 @@
         }
 
         function startScanner() {
-            lastScanTime = 0; // Reset
+            lastScanTime = 0; 
             document.getElementById('scan-overlay').style.display = 'none';
             document.getElementById('laser').style.display = 'block';
             document.getElementById('btn-cancel').style.display = 'block';
@@ -282,11 +286,11 @@
             
             Quagga.onDetected(res => { 
                 const now = Date.now();
-                if (now - lastScanTime < 1500) return; // 1.5 Saniye Kilit (Debounce)
+                if (now - lastScanTime < 1500) return;
                 lastScanTime = now;
 
                 const code = res.codeResult.code;
-                stopScanner(); // KAMERAYI HEMEN KAPAT
+                stopScanner();
                 
                 if(navigator.vibrate) navigator.vibrate(100); 
                 
@@ -323,6 +327,34 @@
             
             if(id === 'products') renderList(lowOnly);
         }
+
+        // --- YENİ EKLENEN FONKSİYON: HIZLI STOK DÜŞÜRME ---
+        function quickDecrease(id) {
+            const p = products.find(x => x.id === id);
+            
+            if (Number(p.stock) <= 0) {
+                alert("Stok zaten bitti!");
+                return;
+            }
+
+            const updatedStock = Number(p.stock) - 1;
+            const profit = p.price - (p.buyPrice || 0);
+
+            // Veritabanını güncelle
+            db.ref('products/' + id).update({ stock: updatedStock });
+            
+            // Satış logu oluştur
+            db.ref('logs').push({ 
+                pName: p.name, 
+                pImg: p.image || '', 
+                type: 'out', 
+                amount: 1, 
+                ciro: p.price, 
+                profit: profit, 
+                date: Date.now() 
+            });
+        }
+        // ------------------------------------------------
 
         function updateProduct() {
             const id = document.getElementById('edit-id').value;
@@ -361,7 +393,24 @@
             const cont = document.getElementById('list-container');
             let filtered = products.filter(p => p.name.toLowerCase().includes(s) || p.barcode.includes(s));
             if(onlyLow) filtered = filtered.filter(p => Number(p.stock) <= Number(p.minStock || 5));
-            cont.innerHTML = filtered.map(p => `<div class="item-card" onclick="openEdit('${p.id}')"><img src="${p.image || 'https://via.placeholder.com/60'}" class="item-img"><div style="flex:1"><b>${p.name}</b><small>${p.barcode} • ${p.size || 'STD'}</small></div><div style="text-align:right"><b style="${Number(p.stock)<=Number(p.minStock)?'color:var(--red)':''}">${p.stock}</b><small>₺${p.price}</small></div></div>`).join('');
+            
+            // LİSTE GÖRÜNÜMÜ GÜNCELLENDİ: -1 BUTONU EKLENDİ
+            cont.innerHTML = filtered.map(p => `
+                <div class="item-card" onclick="openEdit('${p.id}')">
+                    <img src="${p.image || 'https://via.placeholder.com/60'}" class="item-img">
+                    <div style="flex:1">
+                        <b>${p.name}</b>
+                        <small>${p.barcode} • ${p.size || 'STD'}</small>
+                    </div>
+                    <div style="text-align:right; display:flex; align-items:center;">
+                        <button class="btn-minus" onclick="event.stopPropagation(); quickDecrease('${p.id}')">-1</button>
+                        <div>
+                            <b style="${Number(p.stock)<=Number(p.minStock)?'color:var(--red)':''}">${p.stock}</b>
+                            <small>₺${p.price}</small>
+                        </div>
+                    </div>
+                </div>`
+            ).join('');
         }
 
         function openEdit(id) { const p = products.find(x => x.id === id); document.getElementById('edit-id').value = id; document.getElementById('edit-barcode').value = p.barcode; document.getElementById('edit-name').value = p.name; document.getElementById('edit-size').value = p.size || ""; document.getElementById('edit-stock').value = p.stock; document.getElementById('edit-min').value = p.minStock || 5; document.getElementById('edit-price').value = p.price; document.getElementById('edit-buy').value = p.buyPrice || 0; document.getElementById('modal-img').src = p.image || ''; document.getElementById('modal-name-text').innerText = p.name; document.getElementById('modal-barcode-text').innerText = p.barcode; document.getElementById('modal-edit').classList.add('active'); }
