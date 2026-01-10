@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Stok Pro v10.7</title>
+    <title>Stok Pro v10.8</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -44,13 +44,15 @@
 
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
         
-        /* --- DASHBOARD CARDS --- */
+        /* --- DASHBOARD --- */
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
         .sq-card { background: var(--card); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; box-shadow: var(--shadow); cursor: pointer; border: 1px solid var(--border); }
         .sq-card.black-card { background: var(--text-main); color: var(--bg); }
         .kasa-card { background: var(--text-main); color: var(--bg); border-radius: 28px; padding: 25px; margin-bottom: 20px; }
 
-        /* --- ADET SEÇİCİ --- */
+        /* --- UI ELEMENTS --- */
+        .modern-input-group { background: var(--input-bg); border-radius: 18px; padding: 12px 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; }
+        .modern-input-group input { background: none; border: none; outline: none; width: 100%; font-size: 16px; font-weight: 600; color: var(--text-main); }
         .qty-picker { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; background: var(--card); padding: 15px; border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow); }
         .qty-btn { width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--input-bg); color: var(--text-main); font-size: 22px; font-weight: 700; cursor: pointer; }
         #scan-qty { font-size: 24px; font-weight: 800; width: 60px; text-align: center; }
@@ -65,22 +67,21 @@
         .btn-scan-start { background: #fff; color: #000; padding: 18px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; }
         .btn-cancel-scan { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 12px 35px; border-radius: 30px; font-weight: 700; z-index: 30; display: none; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; }
 
-        /* --- MODAL TASARIMI --- */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); z-index: 2000; display:none; align-items:flex-end; }
-        .modal.active { display:flex; }
-        .modal-content { background: var(--card); width: 100%; padding: 25px; border-radius: 35px 35px 0 0; max-height: 95vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .modern-input-group { background: var(--input-bg); border-radius: 18px; padding: 12px 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 12px; }
-        .modern-input-group input { background: none; border: none; outline: none; width: 100%; font-size: 16px; font-weight: 600; color: var(--text-main); }
         .item-card { background: var(--card); border-radius: 22px; padding: 14px; display: flex; align-items: center; gap: 15px; margin-bottom: 12px; border: 1px solid var(--border); }
         .item-img { width: 55px; height: 55px; border-radius: 14px; object-fit: cover; }
         .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: var(--text-main); border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .bottom-nav i { color: var(--bg); font-size: 24px; }
+
+        /* --- MODAL --- */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); z-index: 2000; display:none; align-items:flex-end; }
+        .modal.active { display:flex; }
+        .modal-content { background: var(--card); width: 100%; padding: 25px; border-radius: 35px 35px 0 0; max-height: 95vh; overflow-y: auto; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body data-theme="light">
     
-    <div id="ver-tag">STOK PRO V10.7</div>
+    <div id="ver-tag">STOK PRO V10.8</div>
 
     <div id="login-screen">
         <div class="pin-dots" id="pinDots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
@@ -132,6 +133,26 @@
             <div id="log-container" style="margin-top:20px;"></div>
         </div>
 
+        <div id="tab-add" class="tab-content" style="display:none">
+            <div style="background:var(--input-bg); height:120px; border-radius:24px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; overflow:hidden" onclick="document.getElementById('file-input').click()">
+                <input type="file" id="file-input" hidden accept="image/*" onchange="previewImg(this, 'add-img-preview')">
+                <img id="add-img-preview" style="width:100%; height:100%; object-fit:cover; display:none">
+                <i class="fa-solid fa-camera fa-2x" id="add-icon" style="color:var(--label)"></i>
+            </div>
+            <div class="modern-input-group"><i class="fa-solid fa-barcode"></i><input type="text" id="inp-barcode" placeholder="Barkod"></div>
+            <div class="modern-input-group"><i class="fa-solid fa-tag"></i><input type="text" id="inp-name" placeholder="Ürün Adı"></div>
+            <div class="modern-input-group"><i class="fa-solid fa-ruler"></i><input type="text" id="inp-size" placeholder="Beden"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+                <div class="modern-input-group"><input type="number" id="inp-buy" placeholder="Alış"></div>
+                <div class="modern-input-group"><input type="number" id="inp-price" placeholder="Satış"></div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+                <div class="modern-input-group"><input type="number" id="inp-stock" placeholder="Stok"></div>
+                <div class="modern-input-group" style="border: 1px solid var(--red); opacity: 0.8;"><input type="number" id="inp-min" placeholder="Kritik Sınır"></div>
+            </div>
+            <button class="btn-scan-start" style="width:100%; background:var(--text-main); color:var(--bg);" onclick="saveProduct()">DEPOYA KAYDET</button>
+        </div>
+
         <div id="tab-products" class="tab-content" style="display:none">
             <div class="modern-input-group" style="margin-bottom: 20px; background: var(--card); border: 1px solid var(--border);">
                 <i class="fa-solid fa-magnifying-glass"></i>
@@ -146,15 +167,18 @@
             <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
                 <h3>Ürün Detayı</h3><div class="close-circle" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></div>
             </div>
-            <img id="edit-img-preview" style="width:70px; height:70px; border-radius:15px; object-fit:cover; margin-bottom:15px;">
+            <img id="edit-img-preview" style="width:70px; height:70px; border-radius:15px; object-fit:cover; margin-bottom:15px; background:var(--input-bg);">
             <input type="hidden" id="edit-id">
             <div class="modern-input-group"><i class="fa-solid fa-tag"></i><input type="text" id="edit-name"></div>
             <div class="modern-input-group"><i class="fa-solid fa-ruler"></i><input type="text" id="edit-size" placeholder="Beden"></div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
                 <div class="modern-input-group"><i class="fa-solid fa-cubes"></i><input type="number" id="edit-stock"></div>
-                <div class="modern-input-group"><i class="fa-solid fa-price-tag"></i><input type="number" id="edit-price"></div>
+                <div class="modern-input-group"><i class="fa-solid fa-bell"></i><input type="number" id="edit-min" placeholder="Kritik"></div>
             </div>
-            <div class="modern-input-group"><i class="fa-solid fa-cart-shopping"></i><input type="number" id="edit-buy"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+                <div class="modern-input-group"><i class="fa-solid fa-hand-holding-dollar"></i><input type="number" id="edit-price"></div>
+                <div class="modern-input-group"><i class="fa-solid fa-cart-shopping"></i><input type="number" id="edit-buy"></div>
+            </div>
             <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px;">
                 <button class="btn-scan-start" style="background:var(--blue); color:#fff;" onclick="updateProduct()">GÜNCELLE</button>
                 <button class="btn-scan-start" style="background:var(--red); color:#fff;" onclick="deleteProduct()">SİL</button>
@@ -168,12 +192,17 @@
         const firebaseConfig = { apiKey: "AIzaSyBt5AmmhZc6sI764z8hMjGusAzNRMIrxLw", authDomain: "stoktakip-4779c.firebaseapp.com", databaseURL: "https://stoktakip-4779c-default-rtdb.firebaseio.com", projectId: "stoktakip-4779c", storageBucket: "stoktakip-4779c.firebasestorage.app", messagingSenderId: "751946906534", appId: "1:751946906534:web:e28257e6487a638af7ed67" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let products = [], logs = [], currentPin = "", currentScanQty = 1, isScanningProcessing = false;
+        let products = [], logs = [], currentPin = "", currentScanQty = 1, isScanningProcessing = false, tempImg = "";
 
-        function updateScanQty(val) { currentScanQty = Math.max(1, currentScanQty + val); document.getElementById('scan-qty').innerText = currentScanQty; }
+        // PIN MANTIĞI
         function enterPin(n) { if(currentPin.length < 6) { currentPin += n; updateDots(); if(currentPin.length === 6) setTimeout(submitPin, 100); } }
         function updateDots() { document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('active', i < currentPin.length)); }
+        function clearPin() { currentPin = ""; updateDots(); }
         function submitPin() { if(currentPin === "588558") { localStorage.setItem('stokAuth', 'true'); document.getElementById('login-screen').style.display = 'none'; initApp(); } else { alert("Hatalı PIN!"); currentPin = ""; updateDots(); } }
+
+        function updateScanQty(val) { currentScanQty = Math.max(1, currentScanQty + val); document.getElementById('scan-qty').innerText = currentScanQty; }
+        function logoutConfirm() { if(confirm("Çıkış?")) { localStorage.removeItem('stokAuth'); location.reload(); } }
+        function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
 
         window.onload = () => {
             const date = new Date();
@@ -199,7 +228,7 @@
                         alert(`${found.name}: ${qty} Adet Satıldı.`); isScanningProcessing = false; stopScanner();
                     });
                 } else {
-                    if(confirm("Yeni Ürün! Eklemek ister misiniz?")) { /* switchTab('add'); logic */ }
+                    if(confirm("Yeni Ürün! Eklemek ister misiniz?")) { document.getElementById('inp-barcode').value = code; switchTab('add'); }
                     isScanningProcessing = false; stopScanner();
                 }
             });
@@ -208,12 +237,27 @@
         function stopScanner() { Quagga.stop(); document.getElementById('scan-overlay').style.display = 'flex'; document.getElementById('laser').style.display = 'none'; document.getElementById('btn-cancel').style.display = 'none'; isScanningProcessing = false; }
         function switchTab(id, lowOnly = false) { document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none'); document.getElementById('tab-' + id).style.display = 'block'; if(id === 'products') renderList(lowOnly); }
 
+        function updateUI() {
+            const tCost = products.reduce((a,b) => a + (Number(b.stock || 0) * Number(b.buyPrice || 0)), 0);
+            const tLow = products.filter(p => Number(p.stock) <= Number(p.minStock || 5)).length;
+            document.getElementById('d-count').innerText = products.length;
+            document.getElementById('d-value').innerText = '₺' + tCost.toLocaleString('tr-TR');
+            document.getElementById('d-low').innerText = tLow;
+            renderList();
+        }
+
         function renderList(onlyLow = false) {
             const s = document.getElementById('search-box').value.toLowerCase();
             const cont = document.getElementById('list-container');
             let filtered = products.filter(p => p.name.toLowerCase().includes(s) || (p.barcode && p.barcode.includes(s)));
-            if(onlyLow) filtered = filtered.filter(p => Number(p.stock) <= 5);
-            cont.innerHTML = filtered.map(p => `<div class="item-card" onclick="openEdit('${p.id}')"><img src="${p.image || 'https://via.placeholder.com/60'}" class="item-img"><div style="flex:1"><b>${p.name}</b><br><small>${p.size || ''} • ${p.barcode}</small></div><div style="text-align:right"><b>${p.stock}</b><br><small>₺${p.price}</small></div></div>`).join('');
+            if(onlyLow) filtered = filtered.filter(p => Number(p.stock) <= Number(p.minStock || 5));
+            cont.innerHTML = filtered.map(p => `
+                <div class="item-card" onclick="openEdit('${p.id}')">
+                    <img src="${p.image || 'https://via.placeholder.com/60'}" class="item-img">
+                    <div style="flex:1"><b>${p.name}</b><br><small>${p.size || ''} • ${p.barcode}</small></div>
+                    <div style="text-align:right"><b style="${Number(p.stock) <= Number(p.minStock || 5) ? 'color:var(--red)' : ''}">${p.stock}</b><br><small>₺${p.price}</small></div>
+                </div>
+            `).join('');
         }
 
         function openEdit(id) {
@@ -222,6 +266,7 @@
             document.getElementById('edit-name').value = p.name;
             document.getElementById('edit-size').value = p.size || "";
             document.getElementById('edit-stock').value = p.stock;
+            document.getElementById('edit-min').value = p.minStock || 5;
             document.getElementById('edit-price').value = p.price;
             document.getElementById('edit-buy').value = p.buyPrice || 0;
             document.getElementById('edit-img-preview').src = p.image || 'https://via.placeholder.com/60';
@@ -234,17 +279,38 @@
                 name: document.getElementById('edit-name').value,
                 size: document.getElementById('edit-size').value,
                 stock: Number(document.getElementById('edit-stock').value),
+                minStock: Number(document.getElementById('edit-min').value),
                 price: Number(document.getElementById('edit-price').value),
                 buyPrice: Number(document.getElementById('edit-buy').value)
             }).then(closeModal);
         }
 
-        function updateUI() {
-            const tCost = products.reduce((a,b) => a + (Number(b.stock || 0) * Number(b.buyPrice || 0)), 0);
-            document.getElementById('d-count').innerText = products.length;
-            document.getElementById('d-value').innerText = '₺' + tCost.toLocaleString('tr-TR');
-            document.getElementById('d-low').innerText = products.filter(p => Number(p.stock) <= 5).length;
-            renderList();
+        function saveProduct() {
+            const p = { 
+                barcode: document.getElementById('inp-barcode').value, 
+                name: document.getElementById('inp-name').value, 
+                size: document.getElementById('inp-size').value, 
+                buyPrice: Number(document.getElementById('inp-buy').value), 
+                price: Number(document.getElementById('inp-price').value), 
+                stock: Number(document.getElementById('inp-stock').value), 
+                minStock: Number(document.getElementById('inp-min').value) || 5,
+                image: tempImg 
+            };
+            db.ref('products').push(p).then(() => { 
+                tempImg = ""; 
+                document.getElementById('add-img-preview').style.display='none'; 
+                document.getElementById('add-icon').style.display='block'; 
+                document.querySelectorAll('#tab-add input').forEach(i => i.value = "");
+                switchTab('dashboard'); 
+            });
+        }
+
+        function previewImg(input, target) {
+            if(input.files && input.files[0]) {
+                const r = new FileReader();
+                r.onload = e => { tempImg = e.target.result; document.getElementById(target).src = tempImg; document.getElementById(target).style.display = 'block'; document.getElementById('add-icon').style.display='none'; };
+                r.readAsDataURL(input.files[0]);
+            }
         }
 
         function renderLogs() {
@@ -263,9 +329,8 @@
         }
 
         function closeModal() { document.getElementById('modal-edit').classList.remove('active'); }
-        function deleteProduct() { if(confirm("Silinsin mi?")) db.ref('products/'+document.getElementById('edit-id').value).remove().then(closeModal); }
+        function deleteProduct() { if(confirm("Ürünü silmek istediğinize emin misiniz?")) db.ref('products/'+document.getElementById('edit-id').value).remove().then(closeModal); }
         function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
-        function clearPin() { currentPin = ""; updateDots(); }
     </script>
 </body>
 </html>
