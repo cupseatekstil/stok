@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Stok Pro v10.0</title>
+    <title>Stok Pro v10.1</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -14,38 +14,22 @@
     
     <style>
         :root {
-            --bg: #F2F2F7;
-            --card: #FFFFFF;
-            --label: #8E8E93;
-            --text-main: #000000;
-            --text-inv: #FFFFFF;
-            --input-bg: #E9E9EB;
-            --border: rgba(0,0,0,0.06);
-            --shadow: 0 10px 30px rgba(0,0,0,0.05);
-            --nav-bg: rgba(255, 255, 255, 0.85);
-            --green: #34C759;
-            --red: #FF3B30;
+            --bg: #F2F2F7; --card: #FFFFFF; --label: #8E8E93; --text-main: #000000;
+            --text-inv: #FFFFFF; --input-bg: #E9E9EB; --border: rgba(0,0,0,0.06);
+            --shadow: 0 10px 30px rgba(0,0,0,0.05); --nav-bg: rgba(255, 255, 255, 0.85);
+            --green: #34C759; --red: #FF3B30;
         }
-
         [data-theme="dark"] {
-            --bg: #000000;
-            --card: #1C1C1E;
-            --label: #98989D;
-            --text-main: #FFFFFF;
-            --text-inv: #000000;
-            --input-bg: #2C2C2E;
-            --border: rgba(255,255,255,0.1);
-            --shadow: none;
+            --bg: #000000; --card: #1C1C1E; --label: #98989D; --text-main: #FFFFFF;
+            --text-inv: #000000; --input-bg: #2C2C2E; --border: rgba(255,255,255,0.1);
             --nav-bg: rgba(28, 28, 30, 0.85);
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text-main); padding-bottom: 100px; transition: background 0.3s, color 0.3s; }
 
         /* --- VERSİYON ETİKETİ --- */
         #ver-tag { position: fixed; top: 8px; left: 10px; font-size: 10px; font-weight: 800; color: var(--label); z-index: 10001; text-transform: uppercase; pointer-events: none; }
 
-        /* --- LOGIN --- */
         #login-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .pin-dots { display: flex; gap: 20px; margin: 50px 0; }
         .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #333; transition: 0.3s; }
@@ -53,42 +37,35 @@
         .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
         .num-btn { width: 78px; height: 78px; border-radius: 50%; background: #1C1C1E; color: #fff; font-size: 30px; display: flex; align-items: center; justify-content: center; border: none; }
         
-        /* --- HEADER --- */
-        .header { background: var(--nav-bg); backdrop-filter: blur(25px); padding: 35px 20px 15px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: flex-end; transition: 0.3s; }
+        .header { background: var(--nav-bg); backdrop-filter: blur(25px); padding: 35px 20px 15px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: flex-end; }
         .header h2 { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
         .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--input-bg); color: var(--text-main); font-size: 18px; cursor: pointer; }
 
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
-        
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-        .sq-card { background: var(--card); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; box-shadow: var(--shadow); cursor: pointer; transition: 0.2s; border: 1px solid var(--border); }
+        .sq-card { background: var(--card); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; box-shadow: var(--shadow); cursor: pointer; border: 1px solid var(--border); }
         .sq-card.black-card { background: var(--text-main); color: var(--bg); border: 1px solid rgba(255,255,255,0.1); }
-        .sq-card.black-card i { color: var(--bg); opacity: 1; }
-        .kasa-card { background: var(--text-main); color: var(--bg); border-radius: 28px; padding: 25px; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .kasa-card { background: var(--text-main); color: var(--bg); border-radius: 28px; padding: 25px; margin-bottom: 20px; }
 
-        /* --- ADET SEÇİCİ --- */
         .qty-picker { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; background: var(--card); padding: 15px; border-radius: 20px; border: 1px solid var(--border); }
-        .qty-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--input-bg); color: var(--text-main); font-size: 20px; font-weight: 700; cursor: pointer; }
+        .qty-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--input-bg); color: var(--text-main); font-size: 20px; font-weight: 700; }
         #scan-qty { font-size: 22px; font-weight: 800; width: 50px; text-align: center; }
 
-        /* --- SCANNER --- */
-        #scanner-box { width: 100%; height: 350px; background: #000; border-radius: 32px; overflow: hidden; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); }
+        #scanner-box { width: 100%; height: 350px; background: #000; border-radius: 32px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1); }
         #scanner-viewport { width: 100%; height: 100%; }
         #scanner-viewport video { width: 100%; height: 100%; object-fit: cover; }
         .scan-laser { position: absolute; top: 50%; left: 40px; right: 40px; height: 2px; background: #34C759; box-shadow: 0 0 20px #34C759; animation: scanMove 2s infinite ease-in-out; z-index: 15; display: none; }
         @keyframes scanMove { 0%, 100% { transform: translateY(-100px); opacity: 0; } 50% { transform: translateY(100px); opacity: 1; } }
         #scan-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
-        .btn-scan-start { background: #fff; color: #000; padding: 18px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; }
-        
-        /* VAZGEÇ BUTONU YUKARI ALINDI */
-        .btn-cancel-scan { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 12px 35px; border-radius: 30px; font-weight: 700; z-index: 30; display: none; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+        .btn-scan-start { background: #fff; color: #000; padding: 18px 30px; border-radius: 50px; font-weight: 800; border: none; }
+        .btn-cancel-scan { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 12px 35px; border-radius: 30px; font-weight: 700; z-index: 30; display: none; border: 1px solid rgba(255,255,255,0.2); }
 
-        /* --- LIST & ITEMS --- */
-        .item-card { background: var(--card); border-radius: 20px; padding: 15px; display: flex; align-items: center; gap: 16px; margin-bottom: 12px; border: 0.5px solid var(--border); transition: 0.3s; }
-        .item-img { width: 60px; height: 60px; border-radius: 14px; object-fit: cover; background: var(--input-bg); }
+        .item-card { background: var(--card); border-radius: 20px; padding: 15px; display: flex; align-items: center; gap: 16px; margin-bottom: 12px; border: 0.5px solid var(--border); }
         .input-group { background: var(--input-bg); border-radius: 14px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); }
-        .input-group input { background: none; border: none; outline: none; width: 100%; font-size: 16px; font-weight: 500; color: var(--text-main); }
-        .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: var(--text-main); border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); cursor: pointer; }
+        .input-group input { background: none; border: none; outline: none; width: 100%; font-size: 16px; color: var(--text-main); }
+        .btn { width: 100%; padding: 18px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; }
+        .btn-black { background: var(--text-main); color: var(--bg); }
+        .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: var(--text-main); border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .bottom-nav i { color: var(--bg); font-size: 24px; }
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); z-index: 2000; display:none; align-items:flex-end; }
         .modal.active { display:flex; }
@@ -97,7 +74,7 @@
 </head>
 <body data-theme="light">
     
-    <div id="ver-tag">STOK PRO V10.0</div>
+    <div id="ver-tag">STOK PRO V10.1</div>
 
     <div id="login-screen">
         <div style="font-size: 40px; color: #fff; margin-bottom: 20px;"><i class="fa-solid fa-fingerprint"></i></div>
@@ -149,8 +126,7 @@
                 </div>
                 <button class="btn-cancel-scan" id="btn-cancel" onclick="stopScanner()">VAZGEÇ</button>
             </div>
-            <h4 style="margin:25px 0 10px; font-weight:800; font-size:12px; color:var(--label); text-transform: uppercase;">Son İşlemler</h4>
-            <div id="log-container"></div>
+            <div id="log-container" style="margin-top:20px;"></div>
         </div>
 
         <div id="tab-add" class="tab-content" style="display:none">
@@ -214,25 +190,30 @@
             db.ref('logs').limitToLast(15).on('value', snap => { const data = snap.val(); logs = data ? Object.values(data).reverse() : []; renderLogs(); updateKasaOzet(); });
         }
 
+        // --- BARKOD OKUMA VE KİLİT MEKANİZMASI ---
         function startScanner() {
             isScanningProcessing = false;
             document.getElementById('scan-overlay').style.display = 'none';
             document.getElementById('laser').style.display = 'block';
             document.getElementById('btn-cancel').style.display = 'block';
             
-            // Yüksek hassasiyetli okuma ayarları
             Quagga.init({
-                inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-viewport'), constraints: { facingMode: "environment", focusMode: "continuous" } },
-                locator: { patchSize: "large", halfSample: false }, // halfSample false: Daha yüksek çözünürlük
+                inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-viewport'), constraints: { facingMode: "environment" } },
+                locator: { patchSize: "large", halfSample: false },
                 decoder: { readers: ["ean_reader", "code_128_reader", "ean_8_reader"] },
                 locate: true
             }, err => { if(!err) Quagga.start(); });
             
             Quagga.onDetected(res => { 
+                // ÖNEMLİ KİLİT: Eğer zaten bir işlem yapılıyorsa (confirm veya db yazma), yeni okumayı görmezden gel.
                 if(isScanningProcessing) return;
-                isScanningProcessing = true;
+                
+                isScanningProcessing = true; // KİLİDİ AKTİF ET
                 const code = res.codeResult.code;
-                stopScanner();
+                
+                // Kamera arkada çalışmaya devam etmesin diye hemen durduruyoruz
+                Quagga.stop(); 
+                
                 if(navigator.vibrate) navigator.vibrate(100);
                 
                 const found = products.find(p => p.barcode === code);
@@ -246,23 +227,39 @@
                             date: Date.now() 
                         });
                         alert(`${found.name}: ${qty} Adet Stoktan Düşüldü.`);
+                        // İşlem bitti, kamerayı ve kilidi hazırlayalım
                         isScanningProcessing = false;
+                        stopScanner(); // UI'ı tarama öncesi haline getir
                     });
                 } else {
-                    if(confirm("Yeni Ürün! Barkod: " + code + " Eklensin mi?")) {
+                    // YENİ ÜRÜN DURUMU
+                    if(confirm("Yeni Ürün! Barkod: " + code + "\nBu barkod depoda yok. Eklemek ister misiniz?")) {
                         document.getElementById('inp-barcode').value = code;
                         switchTab('add');
                     }
+                    // Kullanıcı confirm penceresini kapattığında kilidi aç
                     isScanningProcessing = false;
+                    stopScanner();
                 }
             });
         }
 
-        function stopScanner() { Quagga.stop(); document.getElementById('scan-overlay').style.display = 'flex'; document.getElementById('laser').style.display = 'none'; document.getElementById('btn-cancel').style.display = 'none'; }
+        function stopScanner() { 
+            Quagga.stop(); 
+            document.getElementById('scan-overlay').style.display = 'flex'; 
+            document.getElementById('laser').style.display = 'none'; 
+            document.getElementById('btn-cancel').style.display = 'none';
+            isScanningProcessing = false; 
+        }
         
         function switchTab(id, lowOnly = false) {
             document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
             document.getElementById('tab-' + id).style.display = 'block';
+            let title = "Ana Sayfa";
+            if(id === 'scan') title = "Barkod Okut";
+            if(id === 'add') title = "Yeni Ürün";
+            if(id === 'products') title = "Depo";
+            document.getElementById('page-title').innerText = title;
             if(id === 'products') renderList(lowOnly);
         }
 
