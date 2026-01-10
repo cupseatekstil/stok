@@ -3,47 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#667eea">
-    <title>Stok Yönetim Sistemi</title>
+    <title>Stok Yönetim - Pro</title>
+    
+    <!-- Quagga.js for barcode scanning -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 10px;
-            padding-bottom: 80px;
+            padding-bottom: 70px;
         }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .header {
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
+        
+        /* Tab Navigation */
+        .tab-nav {
             background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-        .header-top {
+            border-radius: 15px 15px 0 0;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        h1 { color: #333; font-size: 24px; }
-        .sync-badge {
-            background: #d1fae5;
-            color: #065f46;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+        
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 13px;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
             font-weight: 600;
         }
+        
+        .tab-icon { font-size: 20px; display: block; margin-bottom: 5px; }
+        
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 0 0 15px 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .tab-content.active { display: block; }
+        
+        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
+            margin-bottom: 20px;
         }
+        
         .stat-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -51,22 +80,13 @@
             border-radius: 12px;
             text-align: center;
         }
+        
         .stat-value { font-size: 32px; font-weight: bold; }
         .stat-label { font-size: 12px; opacity: 0.9; margin-top: 5px; }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-        .card h2 { color: #333; margin-bottom: 20px; font-size: 20px; }
-        .input-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
+        
+        /* Form Elements */
+        .input-group { margin-bottom: 15px; }
+        
         .input-group label {
             display: block;
             margin-bottom: 5px;
@@ -74,17 +94,27 @@
             font-weight: 500;
             font-size: 13px;
         }
+        
         .input-group input, .input-group select {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 2px solid #e5e7eb;
             border-radius: 8px;
             font-size: 14px;
         }
+        
         .input-group input:focus, .input-group select:focus {
             outline: none;
             border-color: #667eea;
         }
+        
+        .input-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        /* Buttons */
         .btn {
             padding: 12px 24px;
             border: none;
@@ -93,47 +123,64 @@
             cursor: pointer;
             transition: opacity 0.2s;
             font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
         }
+        
         .btn:hover { opacity: 0.9; }
         .btn-primary { background: #667eea; color: white; }
         .btn-success { background: #10b981; color: white; }
         .btn-danger { background: #ef4444; color: white; }
         .btn-secondary { background: #6b7280; color: white; }
-        .search-bar {
-            margin-bottom: 15px;
-        }
-        .search-bar input {
+        
+        /* Camera/Scanner */
+        .scanner-container {
+            position: relative;
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
+            max-width: 500px;
+            height: 300px;
+            margin: 0 auto 20px;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        #scanner video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            height: 50%;
+            border: 3px solid #10b981;
             border-radius: 10px;
-            font-size: 14px;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
         }
-        .filter-chips {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .chip {
-            padding: 8px 16px;
+        
+        .scanner-status {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
             border-radius: 20px;
             font-size: 13px;
-            cursor: pointer;
-            border: 2px solid #e5e7eb;
-            background: white;
-            transition: all 0.2s;
         }
-        .chip:hover { border-color: #667eea; }
-        .chip.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
+        
+        /* Product Table */
         .product-table {
             width: 100%;
             border-collapse: collapse;
         }
+        
         .product-table th {
             background: #f9fafb;
             padding: 12px;
@@ -142,16 +189,18 @@
             color: #666;
             border-bottom: 2px solid #e5e7eb;
         }
+        
         .product-table td {
             padding: 12px;
             border-bottom: 1px solid #e5e7eb;
             font-size: 14px;
         }
-        .product-table tr:hover {
-            background: #f9fafb;
-        }
+        
+        .product-table tr:hover { background: #f9fafb; }
+        
         .product-name { font-weight: 600; color: #333; }
-        .product-barcode { color: #666; font-size: 13px; }
+        .product-barcode { color: #666; font-size: 12px; }
+        
         .stock-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -159,44 +208,75 @@
             font-weight: 600;
             font-size: 14px;
         }
+        
         .stock-normal { background: #d1fae5; color: #065f46; }
         .stock-low { background: #fee2e2; color: #991b1b; }
+        
         .stock-controls {
             display: flex;
             gap: 5px;
             align-items: center;
         }
+        
         .stock-btn {
-            width: 30px;
-            height: 30px;
+            padding: 6px 12px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
             transition: opacity 0.2s;
         }
+        
         .stock-btn:hover { opacity: 0.8; }
         .stock-minus { background: #fee2e2; color: #991b1b; }
         .stock-plus { background: #d1fae5; color: #065f46; }
-        .action-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 5px;
-            opacity: 0.6;
-            transition: opacity 0.2s;
+        
+        /* Search */
+        .search-bar {
+            margin-bottom: 15px;
         }
-        .action-btn:hover { opacity: 1; }
+        
+        .search-bar input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        /* Logs */
+        .log-container {
+            max-height: 500px;
+            overflow-y: auto;
+            background: #1f2937;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .log-entry {
+            color: #10b981;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 5px 0;
+            border-bottom: 1px solid #374151;
+        }
+        
+        .log-time { color: #6b7280; }
+        .log-error { color: #ef4444; }
+        .log-success { color: #10b981; }
+        .log-info { color: #60a5fa; }
+        
+        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: #6b7280;
         }
+        
         .empty-icon { font-size: 64px; margin-bottom: 15px; }
+        
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -204,30 +284,35 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
+        
         .modal.active { display: flex; }
+        
         .modal-content {
             background: white;
             border-radius: 15px;
             padding: 30px;
             max-width: 500px;
             width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
         }
+        
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        .modal-header h3 { color: #333; }
+        
         .close-btn {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
             color: #666;
         }
@@ -235,12 +320,34 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-top">
-                <h1>📦 Stok Yönetim Sistemi</h1>
-                <span class="sync-badge">✓ Senkronize</span>
-            </div>
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="showTab('dashboard')">
+                <span class="tab-icon">🏠</span>
+                Ana Sayfa
+            </button>
+            <button class="tab-btn" onclick="showTab('scanner')">
+                <span class="tab-icon">📷</span>
+                Barkod Okut
+            </button>
+            <button class="tab-btn" onclick="showTab('add')">
+                <span class="tab-icon">➕</span>
+                Yeni Ürün
+            </button>
+            <button class="tab-btn" onclick="showTab('products')">
+                <span class="tab-icon">📋</span>
+                Ürün Listesi
+            </button>
+            <button class="tab-btn" onclick="showTab('reports')">
+                <span class="tab-icon">📊</span>
+                Raporlar
+            </button>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="tab-dashboard" class="tab-content active">
+            <h2 style="margin-bottom: 20px;">📦 Stok Yönetim Sistemi</h2>
+            
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-value" id="totalProducts">0</div>
@@ -259,115 +366,102 @@
                     <div class="stat-label">Düşük Stok</div>
                 </div>
             </div>
+            
+            <h3 style="margin: 20px 0 10px;">Son İşlemler</h3>
+            <div class="log-container" id="recentLogs" style="max-height: 300px;"></div>
         </div>
-
-        <!-- Add Product Form -->
-        <div class="card">
-            <h2>➕ Yeni Ürün Ekle</h2>
+        
+        <!-- Scanner Tab -->
+        <div id="tab-scanner" class="tab-content">
+            <h2 style="margin-bottom: 20px;">📷 Barkod Okut</h2>
+            
+            <div class="scanner-container">
+                <div id="scanner"></div>
+                <div class="scanner-overlay"></div>
+                <div class="scanner-status" id="scannerStatus">Kamera başlatılıyor...</div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn btn-success" id="startScanBtn" onclick="startScanner()">📷 Kamerayı Başlat</button>
+                <button class="btn btn-danger" id="stopScanBtn" onclick="stopScanner()" style="display:none;">⏹️ Kamerayı Durdur</button>
+            </div>
+            
+            <div id="scannedProductInfo" style="margin-top: 20px;"></div>
+        </div>
+        
+        <!-- Add Product Tab -->
+        <div id="tab-add" class="tab-content">
+            <h2 style="margin-bottom: 20px;">➕ Yeni Ürün Ekle</h2>
+            
             <div class="input-row">
                 <div class="input-group">
-                    <label>Barkod *</label>
-                    <input type="text" id="barcodeInput" placeholder="8690632007052">
+                    <label>Barkod (EAN13) *</label>
+                    <input type="text" id="addBarcode" placeholder="1234567890123">
                 </div>
                 <div class="input-group">
                     <label>Ürün Adı *</label>
-                    <input type="text" id="nameInput" placeholder="Coca Cola 330ml">
-                </div>
-                <div class="input-group">
-                    <label>Kategori *</label>
-                    <select id="categoryInput">
-                        <option value="Gıda">Gıda</option>
-                        <option value="İçecek">İçecek</option>
-                        <option value="Giyim">Giyim</option>
-                        <option value="Ayakkabı">Ayakkabı</option>
-                        <option value="Elektronik">Elektronik</option>
-                        <option value="Kozmetik">Kozmetik</option>
-                        <option value="Temizlik">Temizlik</option>
-                        <option value="Kırtasiye">Kırtasiye</option>
-                        <option value="Diğer">Diğer</option>
-                    </select>
+                    <input type="text" id="addName" placeholder="Ürün adı">
                 </div>
             </div>
+            
             <div class="input-row">
                 <div class="input-group">
-                    <label>Stok Adedi</label>
-                    <input type="number" id="stockInput" value="0" min="0">
+                    <label>Kategori *</label>
+                    <input type="text" id="addCategory" placeholder="Kategori girin (örn: Gıda, İçecek)">
                 </div>
                 <div class="input-group">
                     <label>Birim Fiyat (₺) *</label>
-                    <input type="number" id="priceInput" value="0" step="0.01" min="0">
+                    <input type="number" id="addPrice" value="0" step="0.01" min="0">
+                </div>
+            </div>
+            
+            <div class="input-row">
+                <div class="input-group">
+                    <label>Başlangıç Stok</label>
+                    <input type="number" id="addStock" value="0" min="0">
                 </div>
                 <div class="input-group">
-                    <label>Min. Stok Uyarısı</label>
-                    <input type="number" id="minStockInput" value="5" min="0">
+                    <label>Minimum Stok Uyarısı</label>
+                    <input type="number" id="addMinStock" value="5" min="0">
                 </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-success" onclick="addProduct()">💾 Ürün Ekle</button>
-                <button class="btn btn-secondary" onclick="addSampleProducts()">📦 Örnek Ürünler</button>
-                <button class="btn btn-danger" onclick="clearAllProducts()">🗑️ Tümünü Sil</button>
-            </div>
+            
+            <button class="btn btn-success" onclick="addProduct()">💾 Ürün Ekle</button>
         </div>
-
-        <!-- Product List -->
-        <div class="card">
-            <h2>📋 Ürün Listesi</h2>
+        
+        <!-- Products Tab -->
+        <div id="tab-products" class="tab-content">
+            <h2 style="margin-bottom: 20px;">📋 Ürün Listesi</h2>
             
             <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="🔍 Ürün ara (ad, barkod, kategori)..." oninput="filterProducts()">
+                <input type="text" id="searchInput" placeholder="🔍 Ara..." oninput="filterProducts()">
             </div>
-
-            <div class="filter-chips">
-                <div class="chip active" onclick="setFilter('all')">Tümü</div>
-                <div class="chip" onclick="setFilter('lowStock')">Düşük Stok</div>
-                <div id="categoryFilters"></div>
+            
+            <div id="productList"></div>
+        </div>
+        
+        <!-- Reports Tab -->
+        <div id="tab-reports" class="tab-content">
+            <h2 style="margin-bottom: 20px;">📊 Sistem Logları</h2>
+            
+            <div style="margin-bottom: 15px;">
+                <button class="btn btn-danger" onclick="clearLogs()">🗑️ Logları Temizle</button>
+                <button class="btn btn-secondary" onclick="exportLogs()">📥 Logları İndir</button>
             </div>
-
-            <div id="productListContainer"></div>
+            
+            <div class="log-container" id="allLogs"></div>
         </div>
     </div>
-
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal">
+    
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>✏️ Ürün Düzenle</h3>
-                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+                <h3 id="modalTitle">Ürün Detay</h3>
+                <button class="close-btn" onclick="closeProductModal()">&times;</button>
             </div>
-            <div class="input-group">
-                <label>Ürün Adı</label>
-                <input type="text" id="editName">
-            </div>
-            <div class="input-group">
-                <label>Barkod</label>
-                <input type="text" id="editBarcode">
-            </div>
-            <div class="input-group">
-                <label>Kategori</label>
-                <select id="editCategory">
-                    <option value="Gıda">Gıda</option>
-                    <option value="İçecek">İçecek</option>
-                    <option value="Giyim">Giyim</option>
-                    <option value="Ayakkabı">Ayakkabı</option>
-                    <option value="Elektronik">Elektronik</option>
-                    <option value="Kozmetik">Kozmetik</option>
-                    <option value="Temizlik">Temizlik</option>
-                    <option value="Kırtasiye">Kırtasiye</option>
-                    <option value="Diğer">Diğer</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>Birim Fiyat (₺)</label>
-                <input type="number" id="editPrice" step="0.01">
-            </div>
-            <div class="input-group">
-                <label>Min. Stok Uyarısı</label>
-                <input type="number" id="editMinStock">
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn btn-success" onclick="saveEdit()">💾 Kaydet</button>
-                <button class="btn btn-secondary" onclick="closeEditModal()">İptal</button>
-            </div>
+            
+            <div id="modalBody"></div>
         </div>
     </div>
 
@@ -387,10 +481,77 @@
         var db = firebase.database();
         
         var products = [];
-        var currentFilter = 'all';
-        var editingProductId = null;
-
-        // Load products
+        var logs = [];
+        var scannerActive = false;
+        
+        // Logging System
+        function addLog(message, type) {
+            type = type || 'info';
+            var logEntry = {
+                timestamp: Date.now(),
+                message: message,
+                type: type
+            };
+            
+            logs.unshift(logEntry);
+            
+            // Keep only last 1000 logs
+            if (logs.length > 1000) {
+                logs = logs.slice(0, 1000);
+            }
+            
+            // Save to Firebase
+            db.ref('logs').push(logEntry);
+            
+            console.log('[' + type.toUpperCase() + '] ' + message);
+            renderLogs();
+        }
+        
+        function renderLogs() {
+            var allLogsHtml = '';
+            var recentLogsHtml = '';
+            
+            logs.slice(0, 50).forEach(function(log) {
+                var time = new Date(log.timestamp).toLocaleString('tr-TR');
+                var className = 'log-' + log.type;
+                var html = '<div class="log-entry ' + className + '">' +
+                    '<span class="log-time">[' + time + ']</span> ' +
+                    log.message +
+                    '</div>';
+                
+                allLogsHtml += html;
+                if (logs.indexOf(log) < 10) {
+                    recentLogsHtml += html;
+                }
+            });
+            
+            document.getElementById('allLogs').innerHTML = allLogsHtml || '<div class="empty-state"><p>Henüz log kaydı yok</p></div>';
+            document.getElementById('recentLogs').innerHTML = recentLogsHtml || '<div class="empty-state"><p>Henüz işlem yapılmadı</p></div>';
+        }
+        
+        function clearLogs() {
+            if (!confirm('Tüm logları silmek istediğinize emin misiniz?')) return;
+            logs = [];
+            db.ref('logs').remove();
+            addLog('Tüm loglar temizlendi', 'info');
+        }
+        
+        function exportLogs() {
+            var text = logs.map(function(log) {
+                return new Date(log.timestamp).toLocaleString('tr-TR') + ' [' + log.type.toUpperCase() + '] ' + log.message;
+            }).join('\n');
+            
+            var blob = new Blob([text], { type: 'text/plain' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'stok-logs-' + Date.now() + '.txt';
+            a.click();
+            
+            addLog('Loglar indirildi', 'success');
+        }
+        
+        // Load data
         db.ref('products').on('value', function(snapshot) {
             var data = snapshot.val();
             products = [];
@@ -406,10 +567,34 @@
             
             updateStats();
             renderProducts();
-            renderCategoryFilters();
         });
-
-        // Update stats
+        
+        db.ref('logs').limitToLast(100).on('value', function(snapshot) {
+            var data = snapshot.val();
+            if (data) {
+                logs = Object.values(data).reverse();
+                renderLogs();
+            }
+        });
+        
+        // Tab Management
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById('tab-' + tabName).classList.add('active');
+            event.target.closest('.tab-btn').classList.add('active');
+            
+            if (tabName === 'scanner' && !scannerActive) {
+                // Auto-start scanner when tab is opened
+            }
+        }
+        
+        // Stats
         function updateStats() {
             var totalStock = 0;
             var totalValue = 0;
@@ -428,140 +613,170 @@
             document.getElementById('totalValue').textContent = '₺' + totalValue.toFixed(2);
             document.getElementById('lowStockCount').textContent = lowStockCount;
         }
-
-        // Render category filters
-        function renderCategoryFilters() {
-            var categories = {};
-            products.forEach(function(p) {
-                categories[p.category] = true;
-            });
+        
+        // Barcode Scanner
+        function startScanner() {
+            addLog('Barkod okuyucu başlatılıyor...', 'info');
             
-            var html = '';
-            Object.keys(categories).forEach(function(cat) {
-                html += '<div class="chip" onclick="setFilter(\'' + cat + '\')">' + cat + '</div>';
-            });
-            
-            document.getElementById('categoryFilters').innerHTML = html;
-        }
-
-        // Set filter
-        function setFilter(filter) {
-            currentFilter = filter;
-            
-            document.querySelectorAll('.chip').forEach(function(chip) {
-                chip.classList.remove('active');
-            });
-            
-            event.target.classList.add('active');
-            filterProducts();
-        }
-
-        // Filter products
-        function filterProducts() {
-            var search = document.getElementById('searchInput').value.toLowerCase();
-            
-            var filtered = products.filter(function(p) {
-                var matchesSearch = !search || 
-                    p.name.toLowerCase().includes(search) ||
-                    p.barcode.toLowerCase().includes(search) ||
-                    (p.category && p.category.toLowerCase().includes(search));
+            Quagga.init({
+                inputStream: {
+                    name: "Live",
+                    type: "LiveStream",
+                    target: document.querySelector('#scanner'),
+                    constraints: {
+                        width: 640,
+                        height: 480,
+                        facingMode: "environment"
+                    }
+                },
+                decoder: {
+                    readers: ["ean_reader", "ean_8_reader"]
+                }
+            }, function(err) {
+                if (err) {
+                    addLog('Kamera hatası: ' + err, 'error');
+                    alert('Kamera erişimi reddedildi veya hata oluştu: ' + err);
+                    return;
+                }
                 
-                var matchesFilter = currentFilter === 'all' ||
-                    (currentFilter === 'lowStock' && p.stock <= (p.minStock || 5)) ||
-                    p.category === currentFilter;
+                addLog('Barkod okuyucu başlatıldı', 'success');
+                Quagga.start();
+                scannerActive = true;
                 
-                return matchesSearch && matchesFilter;
+                document.getElementById('startScanBtn').style.display = 'none';
+                document.getElementById('stopScanBtn').style.display = 'inline-block';
+                document.getElementById('scannerStatus').textContent = 'Barkodu kare içine hizalayın...';
             });
             
-            renderFilteredProducts(filtered);
+            Quagga.onDetected(function(result) {
+                var barcode = result.codeResult.code;
+                addLog('Barkod okundu: ' + barcode, 'success');
+                handleScannedBarcode(barcode);
+            });
         }
-
-        // Render products
-        function renderProducts() {
-            filterProducts();
+        
+        function stopScanner() {
+            Quagga.stop();
+            scannerActive = false;
+            document.getElementById('startScanBtn').style.display = 'inline-block';
+            document.getElementById('stopScanBtn').style.display = 'none';
+            document.getElementById('scannerStatus').textContent = 'Kamera durduruldu';
+            addLog('Barkod okuyucu durduruldu', 'info');
         }
-
-        function renderFilteredProducts(filtered) {
-            var container = document.getElementById('productListContainer');
+        
+        function handleScannedBarcode(barcode) {
+            var product = products.find(function(p) {
+                return p.barcode === barcode;
+            });
             
-            if (filtered.length === 0) {
-                container.innerHTML = '<div class="empty-state">' +
-                    '<div class="empty-icon">📦</div>' +
-                    '<p>Ürün bulunamadı</p>' +
-                    '</div>';
+            if (product) {
+                addLog('Ürün bulundu: ' + product.name, 'success');
+                showProductModal(product);
+            } else {
+                addLog('Ürün bulunamadı. Yeni ürün eklenebilir: ' + barcode, 'info');
+                showAddProductModal(barcode);
+            }
+        }
+        
+        // Product Modal
+        function showProductModal(product) {
+            var isLow = product.stock <= (product.minStock || 5);
+            
+            var html = '<div class="input-group">' +
+                '<label>Ürün</label>' +
+                '<h3>' + product.name + '</h3>' +
+                '</div>' +
+                '<div class="input-group">' +
+                '<label>Barkod</label>' +
+                '<p>' + product.barcode + '</p>' +
+                '</div>' +
+                '<div class="input-group">' +
+                '<label>Kategori</label>' +
+                '<p>' + (product.category || '-') + '</p>' +
+                '</div>' +
+                '<div class="input-group">' +
+                '<label>Fiyat</label>' +
+                '<p>₺' + (product.price || 0).toFixed(2) + '</p>' +
+                '</div>' +
+                '<div class="input-group">' +
+                '<label>Mevcut Stok</label>' +
+                '<h2 style="color: ' + (isLow ? '#ef4444' : '#10b981') + ';">' + 
+                (product.stock || 0) + ' adet</h2>' +
+                '</div>' +
+                '<div style="margin-top: 20px;">' +
+                '<h4 style="margin-bottom: 10px;">Stok İşlemleri:</h4>' +
+                '<button class="btn btn-danger" onclick="updateStock(\'' + product.id + '\', -10)">-10</button>' +
+                '<button class="btn btn-danger" onclick="updateStock(\'' + product.id + '\', -1)">-1</button>' +
+                '<button class="btn btn-success" onclick="updateStock(\'' + product.id + '\', 1)">+1</button>' +
+                '<button class="btn btn-success" onclick="updateStock(\'' + product.id + '\', 10)">+10</button>' +
+                '</div>';
+            
+            document.getElementById('modalTitle').textContent = '📦 ' + product.name;
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('productModal').classList.add('active');
+        }
+        
+        function showAddProductModal(barcode) {
+            var html = '<p style="color: #f59e0b; margin-bottom: 15px;">⚠️ Bu barkod sistemde kayıtlı değil. Yeni ürün eklemek ister misiniz?</p>' +
+                '<div class="input-group">' +
+                '<label>Barkod</label>' +
+                '<input type="text" id="newBarcode" value="' + barcode + '" readonly>' +
+                '</div>' +
+                '<div class="input-group">' +
+                '<label>Ürün Adı *</label>' +
+                '<input type="text" id="newName" placeholder="Ürün adı">' +
+                '</div>' +
+                '<div class="input-group">' +
+                '<label>Kategori *</label>' +
+                '<input type="text" id="newCategory" placeholder="Kategori">' +
+                '</div>' +
+                '<div class="input-group">' +
+                '<label>Fiyat (₺) *</label>' +
+                '<input type="number" id="newPrice" value="0" step="0.01">' +
+                '</div>' +
+                '<div class="input-group">' +
+                '<label>Stok</label>' +
+                '<input type="number" id="newStock" value="0">' +
+                '</div>' +
+                '<button class="btn btn-success" onclick="saveNewProductFromModal()">💾 Kaydet</button>' +
+                '<button class="btn btn-secondary" onclick="closeProductModal()">İptal</button>';
+            
+            document.getElementById('modalTitle').textContent = '➕ Yeni Ürün Ekle';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('productModal').classList.add('active');
+        }
+        
+        function saveNewProductFromModal() {
+            var barcode = document.getElementById('newBarcode').value.trim();
+            var name = document.getElementById('newName').value.trim();
+            var category = document.getElementById('newCategory').value.trim();
+            var price = parseFloat(document.getElementById('newPrice').value) || 0;
+            var stock = parseInt(document.getElementById('newStock').value) || 0;
+            
+            if (!name || !category) {
+                alert('Ürün adı ve kategori zorunludur!');
                 return;
             }
             
-            var html = '<table class="product-table">' +
-                '<thead><tr>' +
-                '<th>Ürün</th>' +
-                '<th>Kategori</th>' +
-                '<th>Fiyat</th>' +
-                '<th>Stok</th>' +
-                '<th>İşlem</th>' +
-                '</tr></thead><tbody>';
-            
-            filtered.forEach(function(p) {
-                var isLowStock = p.stock <= (p.minStock || 5);
-                var stockClass = isLowStock ? 'stock-low' : 'stock-normal';
-                
-                html += '<tr>' +
-                    '<td>' +
-                    '<div class="product-name">' + p.name + '</div>' +
-                    '<div class="product-barcode">' + p.barcode + '</div>' +
-                    '</td>' +
-                    '<td>' + (p.category || '-') + '</td>' +
-                    '<td>₺' + (p.price || 0).toFixed(2) + '</td>' +
-                    '<td>' +
-                    '<span class="stock-badge ' + stockClass + '">' + (p.stock || 0) + ' adet</span>' +
-                    '</td>' +
-                    '<td>' +
-                    '<div class="stock-controls">' +
-                    '<button class="stock-btn stock-minus" onclick="updateStock(\'' + p.id + '\', -1)">−</button>' +
-                    '<button class="stock-btn stock-plus" onclick="updateStock(\'' + p.id + '\', 1)">+</button>' +
-                    '<button class="action-btn" onclick="editProduct(\'' + p.id + '\')">✏️</button>' +
-                    '<button class="action-btn" onclick="deleteProduct(\'' + p.id + '\')">🗑️</button>' +
-                    '</div>' +
-                    '</td>' +
-                    '</tr>';
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        // Add product
-        function addProduct() {
-            var barcode = document.getElementById('barcodeInput').value.trim();
-            var name = document.getElementById('nameInput').value.trim();
-            var category = document.getElementById('categoryInput').value;
-            var stock = parseInt(document.getElementById('stockInput').value) || 0;
-            var price = parseFloat(document.getElementById('priceInput').value) || 0;
-            var minStock = parseInt(document.getElementById('minStockInput').value) || 5;
-
-            if (!barcode || !name) {
-                alert('⚠️ Lütfen barkod ve ürün adını girin!');
-                return;
-            }
-
             db.ref('products').push({
                 barcode: barcode,
                 name: name,
                 category: category,
-                stock: stock,
                 price: price,
-                minStock: minStock,
+                stock: stock,
+                minStock: 5,
                 createdAt: Date.now()
             }).then(function() {
-                document.getElementById('barcodeInput').value = '';
-                document.getElementById('nameInput').value = '';
-                document.getElementById('stockInput').value = '0';
-                document.getElementById('priceInput').value = '0';
-                document.getElementById('minStockInput').value = '5';
+                addLog('Yeni ürün eklendi: ' + name, 'success');
+                closeProductModal();
             });
         }
-
-        // Update stock
+        
+        function closeProductModal() {
+            document.getElementById('productModal').classList.remove('active');
+        }
+        
+        // Stock Management
         function updateStock(productId, change) {
             var product = products.find(function(p) { return p.id === productId; });
             if (!product) return;
@@ -570,71 +785,100 @@
             
             db.ref('products/' + productId).update({
                 stock: newStock
-            });
-        }
-
-        // Edit product
-        function editProduct(productId) {
-            var product = products.find(function(p) { return p.id === productId; });
-            if (!product) return;
-            
-            editingProductId = productId;
-            document.getElementById('editName').value = product.name;
-            document.getElementById('editBarcode').value = product.barcode;
-            document.getElementById('editCategory').value = product.category || 'Diğer';
-            document.getElementById('editPrice').value = product.price || 0;
-            document.getElementById('editMinStock').value = product.minStock || 5;
-            
-            document.getElementById('editModal').classList.add('active');
-        }
-
-        function saveEdit() {
-            if (!editingProductId) return;
-            
-            db.ref('products/' + editingProductId).update({
-                name: document.getElementById('editName').value,
-                barcode: document.getElementById('editBarcode').value,
-                category: document.getElementById('editCategory').value,
-                price: parseFloat(document.getElementById('editPrice').value) || 0,
-                minStock: parseInt(document.getElementById('editMinStock').value) || 5
             }).then(function() {
-                closeEditModal();
+                var action = change > 0 ? 'artırıldı' : 'azaltıldı';
+                addLog(product.name + ' stoğu ' + action + ': ' + Math.abs(change) + ' adet (Yeni: ' + newStock + ')', 'info');
             });
         }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
-            editingProductId = null;
-        }
-
-        // Delete product
-        function deleteProduct(productId) {
-            if (!confirm('Bu ürünü silmek istediğinize emin misiniz?')) return;
+        
+        // Add Product
+        function addProduct() {
+            var barcode = document.getElementById('addBarcode').value.trim();
+            var name = document.getElementById('addName').value.trim();
+            var category = document.getElementById('addCategory').value.trim();
+            var price = parseFloat(document.getElementById('addPrice').value) || 0;
+            var stock = parseInt(document.getElementById('addStock').value) || 0;
+            var minStock = parseInt(document.getElementById('addMinStock').value) || 5;
             
-            db.ref('products/' + productId).remove();
-        }
-
-        // Clear all
-        function clearAllProducts() {
-            if (!confirm('TÜM ÜRÜNLERİ silmek istediğinize emin misiniz?')) return;
+            if (!barcode || !name || !category) {
+                alert('Barkod, ürün adı ve kategori zorunludur!');
+                return;
+            }
             
-            db.ref('products').remove();
-        }
-
-        // Add sample products
-        function addSampleProducts() {
-            var samples = [
-                { barcode: '8690632007052', name: 'Coca Cola 330ml', category: 'İçecek', stock: 50, price: 15.00, minStock: 10 },
-                { barcode: '8690637004371', name: 'Ülker Çikolata', category: 'Gıda', stock: 30, price: 8.50, minStock: 5 },
-                { barcode: '8690504073642', name: 'Selpak Kağıt Havlu', category: 'Temizlik', stock: 20, price: 25.00, minStock: 5 },
-                { barcode: '8690571014643', name: 'Sütaş Süt 1L', category: 'Gıda', stock: 15, price: 22.50, minStock: 8 },
-                { barcode: '8690605012345', name: 'Tablet Bilgisayar', category: 'Elektronik', stock: 5, price: 3500.00, minStock: 2 }
-            ];
-            
-            samples.forEach(function(product) {
-                db.ref('products').push(product);
+            db.ref('products').push({
+                barcode: barcode,
+                name: name,
+                category: category,
+                price: price,
+                stock: stock,
+                minStock: minStock,
+                createdAt: Date.now()
+            }).then(function() {
+                addLog('Ürün eklendi: ' + name, 'success');
+                
+                // Clear form
+                document.getElementById('addBarcode').value = '';
+                document.getElementById('addName').value = '';
+                document.getElementById('addCategory').value = '';
+                document.getElementById('addPrice').value = '0';
+                document.getElementById('addStock').value = '0';
+                document.getElementById('addMinStock').value = '5';
             });
         }
+        
+        // Product List
+        function filterProducts() {
+            var search = document.getElementById('searchInput').value.toLowerCase();
+            
+            var filtered = products.filter(function(p) {
+                return !search ||
+                    p.name.toLowerCase().includes(search) ||
+                    p.barcode.toLowerCase().includes(search) ||
+                    (p.category && p.category.toLowerCase().includes(search));
+            });
+            
+            renderFilteredProducts(filtered);
+        }
+        
+        function renderProducts() {
+            filterProducts();
+        }
+        
+        function renderFilteredProducts(filtered) {
+            if (filtered.length === 0) {
+                document.getElementById('productList').innerHTML = 
+                    '<div class="empty-state"><div class="empty-icon">📦</div><p>Ürün bulunamadı</p></div>';
+                return;
+            }
+            
+            var html = '<table class="product-table"><thead><tr>' +
+                '<th>Ürün</th><th>Kategori</th><th>Fiyat</th><th>Stok</th><th>İşlem</th>' +
+                '</tr></thead><tbody>';
+            
+            filtered.forEach(function(p) {
+                var isLow = p.stock <= (p.minStock || 5);
+                var stockClass = isLow ? 'stock-low' : 'stock-normal';
+                
+                html += '<tr>' +
+                    '<td><div class="product-name">' + p.name + '</div>' +
+                    '<div class="product-barcode">' + p.barcode + '</div></td>' +
+                    '<td>' + (p.category || '-') + '</td>' +
+                    '<td>₺' + (p.price || 0).toFixed(2) + '</td>' +
+                    '<td><span class="stock-badge ' + stockClass + '">' + (p.stock || 0) + '</span></td>' +
+                    '<td><div class="stock-controls">' +
+                    '<button class="stock-btn stock-minus" onclick="updateStock(\'' + p.id + '\', -10)">-10</button>' +
+                    '<button class="stock-btn stock-minus" onclick="updateStock(\'' + p.id + '\', -1)">-1</button>' +
+                    '<button class="stock-btn stock-plus" onclick="updateStock(\'' + p.id + '\', 1)">+1</button>' +
+                    '<button class="stock-btn stock-plus" onclick="updateStock(\'' + p.id + '\', 10)">+10</button>' +
+                    '</div></td></tr>';
+            });
+            
+            html += '</tbody></table>';
+            document.getElementById('productList').innerHTML = html;
+        }
+        
+        // Initialize
+        addLog('Sistem başlatıldı', 'success');
     </script>
 </body>
 </html>
