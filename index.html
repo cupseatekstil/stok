@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Stok Pro v9.9 - Final Master</title>
+    <title>Stok Pro v10.0 - Perfect</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -14,7 +14,7 @@
     
     <style>
         :root {
-            /* LIGHT MODE (Varsayılan) */
+            /* LIGHT MODE */
             --bg: #F2F2F7;
             --card: #FFFFFF;
             --label: #8E8E93;
@@ -28,7 +28,7 @@
             --red: #FF3B30;
         }
 
-        /* DARK MODE Değişkenleri */
+        /* DARK MODE */
         [data-theme="dark"] {
             --bg: #000000;
             --card: #1C1C1E;
@@ -61,16 +61,13 @@
         
         /* --- CARDS --- */
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-        
         .sq-card { background: var(--card); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; box-shadow: var(--shadow); cursor: pointer; transition: 0.2s; border: 1px solid var(--border); }
         .sq-card:active { transform: scale(0.96); }
         .sq-card .val { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin: 10px 0 2px; }
         .sq-card .label { font-size: 12px; font-weight: 700; color: var(--label); text-transform: uppercase; }
-        
         .sq-card.black-card { background: var(--text-main); color: var(--bg); border: 1px solid rgba(255,255,255,0.1); }
         .sq-card.black-card i { color: var(--bg); opacity: 1; }
         .sq-card.black-card .label { color: var(--label); }
-
         .kasa-card { background: var(--text-main); color: var(--bg); border-radius: 28px; padding: 25px; margin-bottom: 20px; position: relative; overflow: hidden; }
 
         /* --- SCANNER --- */
@@ -82,7 +79,18 @@
         @keyframes scanMove { 0%, 100% { transform: translateY(-100px); opacity: 0; } 50% { transform: translateY(100px); opacity: 1; } }
         #scan-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
         .btn-scan-start { background: #fff; color: #000; padding: 18px 30px; border-radius: 50px; font-weight: 800; font-size: 16px; border: none; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(255,255,255,0.2); cursor: pointer; }
-        .btn-cancel-scan { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 12px 35px; border-radius: 30px; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); z-index: 30; display: none; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        
+        /* GÜNCELLENEN VAZGEÇ BUTONU (YUKARI ALINDI) */
+        .btn-cancel-scan { 
+            position: absolute; 
+            bottom: 120px; /* 30px'den 120px'e çıkarıldı - YUKARI ALINDI */
+            left: 50%; transform: translateX(-50%); 
+            background: #000; color: #fff; 
+            padding: 15px 40px; border-radius: 30px; 
+            font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); 
+            z-index: 999; display: none; cursor: pointer; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        }
         .btn-cancel-scan:active { transform: translateX(-50%) scale(0.95); }
 
         /* --- LIST & ITEMS --- */
@@ -96,18 +104,8 @@
         .btn { width: 100%; padding: 18px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn-black { background: var(--text-main); color: var(--bg); }
 
-        /* --- SINGLE HOME BUTTON NAV --- */
-        .bottom-nav {
-            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-            width: 70px; height: 70px; /* Tam yuvarlak */
-            background: var(--text-main); 
-            border-radius: 50%; 
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: 0.3s;
-        }
+        /* --- HOME BUTTON --- */
+        .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: var(--text-main); border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); cursor: pointer; transition: 0.3s; }
         .bottom-nav:active { transform: translateX(-50%) scale(0.9); }
         .bottom-nav i { color: var(--bg); font-size: 24px; }
 
@@ -255,19 +253,14 @@
         const db = firebase.database();
         let products = [], logs = [], currentPin = "", tempImg = "";
         
-        // --- TARAMA KİLİDİ (ÇOKLU OKUMAYI ENGELLER) ---
-        let isScanningProcessing = false; 
+        // --- SCANNER KİLİDİ ---
+        let lastScanTime = 0;
 
         function enterPin(n) { if(currentPin.length < 6) { currentPin += n; updateDots(); if(currentPin.length === 6) setTimeout(submitPin, 200); } }
         function updateDots() { document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('active', i < currentPin.length)); }
         function submitPin() { if(currentPin === "588558") { localStorage.setItem('stokAuth', 'true'); document.getElementById('login-screen').style.display = 'none'; initApp(); } else { currentPin = ""; updateDots(); } }
         function logoutConfirm() { if(confirm("Çıkış yapılsın mı?")) { localStorage.removeItem('stokAuth'); location.reload(); } }
-        
-        function toggleTheme() {
-            const body = document.body;
-            const current = body.getAttribute('data-theme');
-            body.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
-        }
+        function toggleTheme() { const body = document.body; body.setAttribute('data-theme', body.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
 
         window.onload = () => { 
             const date = new Date();
@@ -281,18 +274,19 @@
         }
 
         function startScanner() {
-            isScanningProcessing = false; // Reset lock
+            lastScanTime = 0; // Reset
             document.getElementById('scan-overlay').style.display = 'none';
             document.getElementById('laser').style.display = 'block';
             document.getElementById('btn-cancel').style.display = 'block';
             Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-viewport'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader", "code_128_reader"] }, locate: true }, err => { if(!err) Quagga.start(); });
             
             Quagga.onDetected(res => { 
-                if(isScanningProcessing) return; // Eğer işlem yapılıyorsa dur.
-                
-                isScanningProcessing = true; // KİLİTLE
+                const now = Date.now();
+                if (now - lastScanTime < 1500) return; // 1.5 Saniye Kilit (Debounce)
+                lastScanTime = now;
+
                 const code = res.codeResult.code;
-                stopScanner(); // Kamerayı hemen kapat
+                stopScanner(); // KAMERAYI HEMEN KAPAT
                 
                 if(navigator.vibrate) navigator.vibrate(100); 
                 
@@ -300,14 +294,12 @@
                 
                 if(found) {
                     openEdit(found.id);
-                    isScanningProcessing = false; // Kilidi aç (Modal açıldı)
                 } 
                 else {
-                    if(confirm("Yeni Ürün! Eklensin mi?")) { 
+                    if(confirm("Ürün Bulunamadı. Eklensin mi?")) { 
                         document.getElementById('inp-barcode').value = code; 
                         switchTab('add'); 
                     }
-                    isScanningProcessing = false; // Kilidi aç
                 } 
             });
         }
