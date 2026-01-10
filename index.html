@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#4F46E5">
-    <title>Stok Mobil Pro v5.1</title>
+    <title>Stok Mobil Pro v5.3</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -56,8 +56,8 @@
             align-items: center; justify-content: center; color: white;
             padding: 20px; text-align: center;
         }
-        .pin-dots { display: flex; gap: 15px; margin-top: 20px; }
-        .pin-dot { width: 15px; height: 15px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: 0.2s; }
+        .pin-dots { display: flex; gap: 10px; margin-top: 20px; }
+        .pin-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: 0.2s; }
         .pin-dot.active { background: white; transform: scale(1.2); }
         .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; }
         .num-btn { 
@@ -196,10 +196,13 @@
     <div id="login-screen">
         <div style="font-size: 50px; margin-bottom: 20px;">🔒</div>
         <h3>Giriş Yap</h3>
-        <p style="opacity: 0.8; font-size: 14px;">Varsayılan Pin: 1234</p>
-        
         <div class="pin-dots" id="pinDots">
-            <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
         </div>
 
         <div class="numpad">
@@ -294,7 +297,7 @@
                     </div>
                     <div class="input-wrapper">
                         <i class="fas fa-ruler"></i>
-                        <input type="text" id="inp-size" placeholder="Beden (S, 42, Standart)">
+                        <input type="text" id="inp-size" placeholder="Beden">
                     </div>
                 </div>
 
@@ -372,7 +375,6 @@
         let tempImg = "";
 
         // --- AUDIO (BEEP) ---
-        // Basit Bip sesi fonksiyonu (AudioContext)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -389,7 +391,8 @@
 
         // --- LOGIN LOGIC ---
         function enterPin(num) {
-            if(currentPin.length < 4) {
+            // ŞİFRE UZUNLUĞUNU 6 HANEYE GÖRE AYARLADIM
+            if(currentPin.length < 6) {
                 currentPin += num;
                 updatePinDots();
             }
@@ -401,7 +404,7 @@
             });
         }
         function submitPin() {
-            if(currentPin === "1234") {
+            if(currentPin === "588558") {
                 document.getElementById('login-screen').style.display = 'none';
                 initApp();
             } else {
@@ -423,7 +426,6 @@
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('tab-'+id).classList.add('active');
-            // İlgili nav item'ı aktif yap
             const navIndex = ['dashboard','scanner','add','products'].indexOf(id);
             if(navIndex > -1) document.querySelectorAll('.nav-item')[navIndex].classList.add('active');
         }
@@ -455,7 +457,7 @@
                 barcode: document.getElementById('inp-barcode').value,
                 name: document.getElementById('inp-name').value,
                 category: document.getElementById('inp-cat').value,
-                size: document.getElementById('inp-size').value, // Artık text input'tan alıyor
+                size: document.getElementById('inp-size').value,
                 price: Number(document.getElementById('inp-price').value),
                 stock: Number(document.getElementById('inp-stock').value),
                 minStock: 5,
@@ -496,12 +498,10 @@
         }
 
         function updateUI() {
-            // Stats
             document.getElementById('stat-total').innerText = products.length;
             document.getElementById('stat-stock').innerText = products.reduce((a,b)=>a+(b.stock||0),0);
             document.getElementById('stat-low').innerText = products.filter(p=>p.stock<=p.minStock).length;
             
-            // Chart
             const ctx = document.getElementById('mainChart').getContext('2d');
             const cats = {};
             products.forEach(p => cats[p.category||'Diğer'] = (cats[p.category||'Diğer']||0)+1);
@@ -537,7 +537,7 @@
 
             Quagga.onDetected(res => {
                 const code = res.codeResult.code;
-                playBeep(); // BİP SESİ
+                playBeep();
                 stopScanner();
                 
                 const found = products.find(p => p.barcode === code);
