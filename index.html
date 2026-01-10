@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#4F46E5">
-    <title>Stok Mobil Pro v6.2</title>
+    <title>Stok Pro v7.3</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,216 +14,161 @@
     
     <style>
         :root {
-            --primary: #4F46E5; --secondary: #EC4899;
-            --bg-body: #F3F4F6; --bg-card: #ffffff;
-            --text-main: #1F2937; --text-light: #6B7280;
-            --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
-            --radius: 20px;
-        }
-
-        [data-theme="dark"] {
-            --bg-body: #111827; --bg-card: #1F2937;
-            --text-main: #F9FAFB; --text-light: #9CA3AF;
-            --primary: #6366f1;
+            --primary: #4F46E5; --bg-body: #F3F4F6; --bg-card: #ffffff;
+            --text-main: #1F2937; --success: #10B981; --danger: #EF4444;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg-body); color: var(--text-main); padding-bottom: 100px; min-height: 100vh; overflow-x: hidden; }
+        body { background: var(--bg-body); color: var(--text-main); padding-bottom: 120px; }
 
         /* --- LOGIN --- */
         #login-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            z-index: 9999; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; color: white; padding: 20px; text-align: center;
+            background: linear-gradient(135deg, #4F46E5, #EC4899);
+            z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
         }
-        .pin-dots { display: flex; gap: 10px; margin-top: 20px; }
-        .pin-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: 0.2s; }
-        .pin-dot.active { background: white; transform: scale(1.2); }
-        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; }
-        .num-btn { width: 70px; height: 70px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .pin-dots { display: flex; gap: 15px; margin-bottom: 30px; }
+        .pin-dot { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.4); }
+        .pin-dot.active { background: white; transform: scale(1.2); border: none; }
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .num-btn { width: 75px; height: 75px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 26px; display: flex; align-items: center; justify-content: center; }
 
-        /* --- UI CORE --- */
-        .header { background: var(--bg-card); padding: 20px 20px 10px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 20px; font-weight: 700; color: var(--primary); }
-        .action-btns { display: flex; gap: 10px; }
-        .icon-btn { background: var(--bg-body); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-main); border:none; cursor: pointer;}
+        /* --- UI --- */
+        .header { background: var(--bg-card); padding: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .container { padding: 15px; max-width: 500px; margin: 0 auto; }
         
-        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-        .card { background: var(--bg-card); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .tab-content { display: none; animation: slideUp 0.4s; }
-        .tab-content.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* --- DASHBOARD GRID --- */
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .sq-card { aspect-ratio: 1/1; background: var(--bg-card); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.04); transition: transform 0.1s; cursor: pointer; border-bottom: 4px solid transparent; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .sq-card { aspect-ratio: 1.1; background: var(--bg-card); border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 4px solid #ddd; cursor: pointer; transition: transform 0.1s; }
         .sq-card:active { transform: scale(0.95); }
-        .sq-icon { font-size: 32px; margin-bottom: 10px; }
-        .sq-val { font-size: 24px; font-weight: 700; }
-        .sq-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; margin-top: 5px; }
-        .sq-blue { color: var(--primary); border-color: var(--primary); }
-        .sq-green { color: var(--success); border-color: var(--success); }
-        .sq-orange { color: var(--warning); border-color: var(--warning); }
-        .sq-red { color: var(--danger); border-color: var(--danger); }
-
-        /* --- LOG DRAWER (Akordiyon Görünümü) --- */
-        .log-drawer { background: var(--bg-card); border-radius: 20px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-top: 20px; }
-        details > summary { padding: 15px 20px; list-style: none; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: rgba(79, 70, 229, 0.05); color: var(--primary); }
-        .log-list-area { max-height: 250px; overflow-y: auto; padding: 10px; }
-        .log-item-small { display: flex; align-items: center; padding: 12px 10px; border-bottom: 1px solid var(--bg-body); font-size: 13px; }
-        .log-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 12px; }
         
-        /* --- BUTTONS --- */
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-large { font-size: 18px; padding: 20px; } /* Başlat butonu için büyüteç */
+        .kasa-card { background: var(--bg-card); border-radius: 20px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+
+        /* List & Log Items */
+        .item-card { display: flex; align-items: center; gap: 12px; background: white; padding: 10px; border-radius: 15px; margin-bottom: 8px; border: 1px solid #eee; }
+        .item-img { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; background: #f0f0f0; }
+
+        /* Scanner */
+        #scanner-box { width: 100%; height: 250px; background: #000; border-radius: 20px; overflow: hidden; position: relative; }
+
+        /* Buttons & Inputs */
+        .input-group { background: #f9fafb; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid #eee; }
+        .input-group input { background: none; border: none; outline: none; width: 100%; font-size: 14px; }
+        .btn { width: 100%; padding: 15px; border-radius: 12px; border:none; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
 
-        /* --- BOTTOM NAV (BÜYÜTÜLDÜ) --- */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 95px; background: var(--bg-card); display: flex; justify-content: space-around; align-items: center; padding-bottom: 20px; box-shadow: 0 -5px 25px rgba(0,0,0,0.1); z-index: 100; border-radius: 25px 25px 0 0; }
-        .nav-item { border: none; background: none; color: #9CA3AF; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; width: 70px; transition: 0.2s; }
-        .nav-item i { font-size: 28px; } /* İkonlar büyütüldü */
-        .nav-item.active { color: var(--primary); transform: translateY(-5px); }
+        /* Modal */
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index: 2000; display:none; align-items:center; justify-content:center; }
+        .modal.active { display:flex; }
+        .modal-content { background:white; width:92%; max-width:400px; padding:20px; border-radius:25px; }
 
-        /* --- LIST & SCANNER --- */
-        .product-card { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--bg-body); background: var(--bg-card); margin-bottom: 10px; border-radius: 12px; }
-        .p-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; margin-right: 15px; }
-        #scanner-box { width: 100%; height: 300px; background: black; border-radius: 16px; overflow: hidden; position: relative; }
-        
-        /* UTILS */
-        .input-wrapper { position: relative; margin-bottom: 15px; }
-        .input-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--primary); }
-        .input-wrapper input { width: 100%; padding: 16px 16px 16px 45px; border-radius: 12px; border: 2px solid transparent; background: var(--bg-body); color: var(--text-main); font-size: 14px; outline: none; }
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1F2937; color: white; padding: 12px 24px; border-radius: 30px; display: flex; align-items: center; gap: 10px; font-size: 13px; z-index: 2000; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 500; display: none; align-items: center; justify-content: center; }
-        .modal-overlay.active { display: flex; }
-        .modal-card { background: var(--bg-card); width: 90%; max-width: 400px; border-radius: 24px; padding: 25px; max-height: 90vh; overflow-y: auto; }
+        /* Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; height: 100px; background: white; display: flex; justify-content: space-around; align-items: center; padding-bottom: 20px; box-shadow: 0 -5px 15px rgba(0,0,0,0.08); z-index: 100; }
+        .nav-item { border: none; background: none; color: #9CA3AF; display: flex; flex-direction: column; align-items: center; font-size: 15px; font-weight: 700; gap: 5px; }
+        .nav-item i { font-size: 32px; }
+        .nav-item.active { color: var(--primary); }
     </style>
 </head>
 <body data-theme="light">
 
     <div id="login-screen">
-        <div style="font-size: 50px; margin-bottom: 20px;">🔒</div>
-        <h3>Giriş Yap</h3>
+        <div style="font-size: 50px;">🔐</div>
+        <h3 style="margin: 15px 0;">Sistem Kilidi</h3>
         <div class="pin-dots" id="pinDots">
             <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
         </div>
         <div class="numpad">
-            <div class="num-btn" onclick="enterPin(1)">1</div><div class="num-btn" onclick="enterPin(2)">2</div><div class="num-btn" onclick="enterPin(3)">3</div>
-            <div class="num-btn" onclick="enterPin(4)">4</div><div class="num-btn" onclick="enterPin(5)">5</div><div class="num-btn" onclick="enterPin(6)">6</div>
-            <div class="num-btn" onclick="enterPin(7)">7</div><div class="num-btn" onclick="enterPin(8)">8</div><div class="num-btn" onclick="enterPin(9)">9</div>
-            <div class="num-btn" onclick="clearPin()">C</div><div class="num-btn" onclick="enterPin(0)">0</div><div class="num-btn" style="background:var(--success)" onclick="submitPin()">➜</div>
+            <div class="num-btn" onclick="enterPin('1')">1</div><div class="num-btn" onclick="enterPin('2')">2</div><div class="num-btn" onclick="enterPin('3')">3</div>
+            <div class="num-btn" onclick="enterPin('4')">4</div><div class="num-btn" onclick="enterPin('5')">5</div><div class="num-btn" onclick="enterPin('6')">6</div>
+            <div class="num-btn" onclick="enterPin('7')">7</div><div class="num-btn" onclick="enterPin('8')">8</div><div class="num-btn" onclick="enterPin('9')">9</div>
+            <div class="num-btn" onclick="clearPin()">C</div><div class="num-btn" onclick="enterPin('0')">0</div><div class="num-btn" onclick="submitPin()">➜</div>
         </div>
     </div>
 
     <div class="header">
-        <div><div style="font-size: 12px; color: var(--text-light); font-weight: 500;">Hoşgeldiniz</div><h1>Stok Paneli</h1></div>
-        <div class="action-btns">
-            <button class="icon-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
-            <button class="icon-btn" onclick="logout()" style="background:#fee2e2; color:var(--danger)"><i class="fas fa-lock"></i></button>
-        </div>
+        <div><small>Stok Takip</small><h2 id="page-title">Ana Sayfa</h2></div>
+        <button onclick="logout()" style="border:none; background:none; color:var(--danger); font-size: 22px;"><i class="fas fa-power-off"></i></button>
     </div>
 
     <div class="container">
-        
         <div id="tab-dashboard" class="tab-content active">
             <div class="dashboard-grid">
-                <div class="sq-card sq-blue" onclick="switchTab('products')">
-                    <i class="fas fa-box sq-icon"></i>
-                    <div class="sq-val" id="d-count">0</div>
-                    <div class="sq-label">Ürün Çeşidi</div>
+                <div class="sq-card" style="color:var(--primary); border-color:var(--primary)" onclick="switchTab('products')">
+                    <b id="d-count" style="font-size:24px">0</b><small>Çeşit</small>
                 </div>
-                <div class="sq-card sq-green" onclick="switchTab('products')">
-                    <i class="fas fa-layer-group sq-icon"></i>
-                    <div class="sq-val" id="d-stock">0</div>
-                    <div class="sq-label">Toplam Stok</div>
+                <div class="sq-card" style="color:var(--success); border-color:var(--success)" onclick="switchTab('products')">
+                    <b id="d-stock" style="font-size:24px">0</b><small>Toplam Stok</small>
                 </div>
-                <div class="sq-card sq-orange">
-                    <i class="fas fa-wallet sq-icon"></i>
-                    <div class="sq-val" id="d-value">₺0</div>
-                    <div class="sq-label">Toplam Değer</div>
+                <div class="sq-card" style="color:var(--warning); border-color:var(--warning)">
+                    <b id="d-value" style="font-size:18px">₺0</b><small>Değer</small>
                 </div>
-                <div class="sq-card sq-red" onclick="switchTab('products')">
-                    <i class="fas fa-exclamation-triangle sq-icon"></i>
-                    <div class="sq-val" id="d-low">0</div>
-                    <div class="sq-label">Kritik Stok</div>
+                <div class="sq-card" style="color:var(--danger); border-color:var(--danger)" onclick="switchTab('products', true)">
+                    <b id="d-low" style="font-size:24px">0</b><small>Kritik</small>
                 </div>
             </div>
-            <div class="card"><canvas id="mainChart" height="200"></canvas></div>
-        </div>
-
-        <div id="tab-scanner" class="tab-content">
-            <div class="card">
-                <h3 style="text-align:center; margin-bottom:15px;">Barkod Okut</h3>
-                <div id="scanner-box"><div id="scanner-viewport" style="width:100%; height:100%;"></div></div>
-                
-                <div style="display: flex; gap: 10px; margin-top:20px;">
-                    <button class="btn btn-primary btn-large" id="btn-start" onclick="startScanner()"><i class="fas fa-camera"></i> BAŞLAT</button>
-                    <button class="btn btn-danger btn-large" id="btn-stop" onclick="stopScanner()" style="display:none"><i class="fas fa-stop"></i> DURDUR</button>
-                </div>
-
-                <details class="log-drawer" open>
-                    <summary><span><i class="fas fa-history"></i> Son İşlemler</span><i class="fas fa-chevron-down"></i></summary>
-                    <div id="dashboard-logs" class="log-list-area"><div style="text-align:center; padding:15px; font-size:12px; color:#999">Henüz işlem yok</div></div>
-                    <div style="text-align:center; padding:10px;"><button onclick="clearLogs()" style="background:none; border:none; color:var(--danger); font-size:11px; font-weight:600">Geçmişi Temizle</button></div>
-                </details>
+            <div class="kasa-card">
+                <h3><i class="fas fa-book"></i> Kasa Defteri</h3>
+                <p id="kasa-ozet" style="color:#999; margin-top:10px">Günlük ciro ve hareketler burada toplanacak.</p>
             </div>
         </div>
 
-        <div id="tab-add" class="tab-content">
-            <div class="card">
-                <h3>Yeni Ürün Ekle</h3><br>
-                <div style="background:var(--bg-body); border:2px dashed #cbd5e1; padding:30px; text-align:center; border-radius:16px; margin-bottom:20px;" onclick="document.getElementById('file-input').click()">
-                    <input type="file" id="file-input" hidden accept="image/*" onchange="previewImage(this)">
-                    <img id="img-preview" style="max-width:100%; max-height:200px; display:none; margin:0 auto; border-radius:8px;">
-                    <div id="upload-placeholder"><i class="fas fa-camera" style="font-size:30px; color:var(--primary)"></i><p>Fotoğraf</p></div>
+        <div id="tab-scan" class="tab-content" style="display:none">
+            <div class="kasa-card">
+                <div id="scanner-box"><div id="scanner-viewport" style="width:100%; height:100%"></div></div>
+                <div style="margin-top:20px">
+                    <button class="btn btn-primary" id="btn-start" onclick="startScanner()" style="font-size:18px"><i class="fas fa-barcode"></i> TARAMAYI BAŞLAT</button>
+                    <button class="btn btn-danger" id="btn-stop" onclick="stopScanner()" style="display:none">DURDUR</button>
                 </div>
-                <div class="input-wrapper"><i class="fas fa-barcode"></i><input type="text" id="inp-barcode" placeholder="Barkod"></div>
-                <div class="input-wrapper"><i class="fas fa-box"></i><input type="text" id="inp-name" placeholder="Ürün Adı"></div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div class="input-wrapper"><i class="fas fa-tag"></i><input type="text" id="inp-cat" list="cats" placeholder="Kategori"></div>
-                    <div class="input-wrapper"><i class="fas fa-ruler"></i><input type="text" id="inp-size" placeholder="Beden"></div>
+            </div>
+            <div class="kasa-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h4><i class="fas fa-history"></i> Son İşlemler</h4>
+                    <button onclick="clearLogs()" style="background:none; border:none; color:var(--danger); font-size:12px; font-weight:600">Temizle</button>
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div class="input-wrapper"><i class="fas fa-lira-sign"></i><input type="number" id="inp-price" placeholder="Fiyat"></div>
-                    <div class="input-wrapper"><i class="fas fa-cubes"></i><input type="number" id="inp-stock" placeholder="Stok"></div>
-                </div>
-                <button class="btn btn-success" onclick="saveProduct()">KAYDET</button>
-                <datalist id="cats"><option value="Gıda"><option value="Elektronik"><option value="Giyim"></datalist>
+                <div id="log-container"></div>
             </div>
         </div>
 
-        <div id="tab-products" class="tab-content">
-            <div class="input-wrapper"><i class="fas fa-search"></i><input type="text" id="search-box" placeholder="Depoda ara..." oninput="renderList()"></div>
-            <div id="list-container" style="padding-bottom:20px;"></div>
+        <div id="tab-add" class="tab-content" style="display:none">
+            <div class="kasa-card">
+                <div style="background:#f0f0f0; height:150px; border-radius:15px; display:flex; align-items:center; justify-content:center; margin-bottom:15px; overflow:hidden; border:2px dashed #ccc" onclick="document.getElementById('file-input').click()">
+                    <input type="file" id="file-input" hidden accept="image/*" onchange="previewImg(this, 'add-img-preview')">
+                    <img id="add-img-preview" style="width:100%; height:100%; object-fit:cover; display:none">
+                    <div id="add-icon-box" style="text-align:center"><i class="fas fa-camera fa-2x"></i><br><small>Görsel Ekle</small></div>
+                </div>
+                <div class="input-group"><i class="fas fa-barcode"></i><input type="text" id="inp-barcode" placeholder="Barkod"></div>
+                <div class="input-group"><i class="fas fa-tag"></i><input type="text" id="inp-name" placeholder="Ürün Adı"></div>
+                <div class="input-group"><i class="fas fa-lira-sign"></i><input type="number" id="inp-price" placeholder="Fiyat"></div>
+                <div class="input-group"><i class="fas fa-cubes"></i><input type="number" id="inp-stock" placeholder="Mevcut Stok"></div>
+                <div class="input-group"><i class="fas fa-bell"></i><input type="number" id="inp-min" placeholder="Kritik Stok Sınırı"></div>
+                <button class="btn btn-primary" onclick="saveProduct()">KAYDET</button>
+            </div>
+        </div>
+
+        <div id="tab-products" class="tab-content" style="display:none">
+            <div class="input-group"><i class="fas fa-search"></i><input type="text" id="search-box" placeholder="Depoda ara..." oninput="renderList()"></div>
+            <div id="list-container"></div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="detail-modal">
-        <div class="modal-card">
-            <div style="text-align:right"><i class="fas fa-times" onclick="closeModal()" style="font-size:24px; cursor:pointer;"></i></div>
-            <div style="text-align:center; margin-bottom:20px;">
-                <img id="modal-img" style="width:100px; height:100px; border-radius:12px; object-fit:cover; margin-bottom:10px;">
-                <h3 id="modal-title">Ürün</h3>
-                <canvas id="barcode-canvas" style="max-width:100%; height:50px; margin-top:5px;"></canvas>
+    <div class="modal" id="modal-edit">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;"><h3>Ürün İşlemi</h3><i class="fas fa-times" onclick="closeModal()"></i></div>
+            <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">
+                <img id="modal-img" style="width:70px; height:70px; border-radius:12px; object-fit:cover">
+                <div><b id="modal-name-text">Ürün Adı</b><br><small id="modal-barcode-text"></small></div>
             </div>
-            <input type="hidden" id="modal-id">
-            <div style="display:flex; gap:10px; margin-bottom:20px;">
-                <button class="btn btn-danger" onclick="stockAction('out')"><i class="fas fa-minus"></i> Satış</button>
-                <button class="btn btn-success" onclick="stockAction('in')"><i class="fas fa-plus"></i> Ekle</button>
-            </div>
-            <div class="input-wrapper"><i class="fas fa-pen"></i><input type="text" id="modal-name"></div>
-            <div class="input-wrapper"><i class="fas fa-lira-sign"></i><input type="number" id="modal-price"></div>
+            <input type="hidden" id="edit-id">
+            <div class="input-group"><i class="fas fa-tag"></i><input type="text" id="edit-name" placeholder="Ad"></div>
+            <div class="input-group"><i class="fas fa-cubes"></i><input type="number" id="edit-stock" placeholder="Stok"></div>
+            <div class="input-group"><i class="fas fa-lira-sign"></i><input type="number" id="edit-price" placeholder="Fiyat"></div>
             <button class="btn btn-primary" onclick="updateProduct()">GÜNCELLE</button>
-            <button class="btn" style="background:none; color:var(--danger); margin-top:10px;" onclick="deleteProduct()">Sil</button>
+            <button class="btn" style="color:var(--danger); background:none; margin-top:5px" onclick="deleteProduct()">Sil</button>
         </div>
     </div>
 
     <div class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('dashboard')"><i class="fas fa-home"></i>Ana</button>
-        <button class="nav-item" onclick="switchTab('scanner')"><i class="fas fa-qrcode"></i>Okut</button>
+        <button class="nav-item" onclick="switchTab('scan')"><i class="fas fa-barcode"></i>Okut</button>
         <button class="nav-item" onclick="switchTab('add')"><i class="fas fa-plus-circle"></i>Ekle</button>
         <button class="nav-item" onclick="switchTab('products')"><i class="fas fa-warehouse"></i>Depo</button>
     </div>
@@ -248,150 +190,131 @@
         let currentPin = "";
         let tempImg = "";
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playBeep() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const o = audioCtx.createOscillator(); o.connect(audioCtx.destination);
-            o.type = "sine"; o.frequency.value = 880; o.start(); setTimeout(() => o.stop(), 150);
-        }
+        // PIN & AUTH (Otomatik Giriş 588558)
+        function enterPin(n) { if(currentPin.length < 6) { currentPin += n; updateDots(); if(currentPin.length === 6) setTimeout(submitPin, 200); } }
+        function updateDots() { document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('active', i < currentPin.length)); }
+        function submitPin() { if(currentPin === "588558") { localStorage.setItem('stokAuth', 'true'); document.getElementById('login-screen').style.display = 'none'; initApp(); } else { currentPin = ""; updateDots(); alert("Şifre Yanlış!"); } }
+        function clearPin() { currentPin = ""; updateDots(); }
+        function logout() { localStorage.removeItem('stokAuth'); location.reload(); }
 
-        function checkLogin() { if(localStorage.getItem('stokLogin') === 'true') { document.getElementById('login-screen').style.display = 'none'; initApp(); } }
-        function logout() { localStorage.removeItem('stokLogin'); location.reload(); }
-        function enterPin(num) { if(currentPin.length < 6) { currentPin += num; updatePinDots(); } }
-        function clearPin() { currentPin = ""; updatePinDots(); }
-        function updatePinDots() { document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('active', i < currentPin.length)); }
-        function submitPin() { if(currentPin === "588558") { localStorage.setItem('stokLogin', 'true'); document.getElementById('login-screen').style.display = 'none'; initApp(); } else { clearPin(); } }
-        
-        window.onload = checkLogin;
+        window.onload = () => { if(localStorage.getItem('stokAuth') === 'true') { document.getElementById('login-screen').style.display = 'none'; initApp(); } };
 
         function initApp() {
             db.ref('products').on('value', snap => {
-                const val = snap.val();
-                products = val ? Object.keys(val).map(k => ({id:k, ...val[k]})) : [];
+                const data = snap.val();
+                products = data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : [];
                 updateUI();
             });
-            db.ref('logs').limitToLast(20).on('value', snap => {
-                const val = snap.val();
-                logs = val ? Object.values(val).reverse() : [];
+            db.ref('logs').limitToLast(15).on('value', snap => {
+                const data = snap.val();
+                logs = data ? Object.values(data).reverse() : [];
                 renderLogs();
             });
         }
 
-        function switchTab(id) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        function switchTab(id, filterCritical = false) {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('tab-'+id).classList.add('active');
-            const navIndex = ['dashboard','scanner','add','products'].indexOf(id);
-            if(navIndex > -1) document.querySelectorAll('.nav-item')[navIndex].classList.add('active');
+            document.getElementById('tab-' + id).style.display = 'block';
+            document.getElementById('page-title').innerText = id === 'products' ? 'Depo' : (id === 'add' ? 'Ekle' : (id === 'scan' ? 'Barkod' : 'Ana Sayfa'));
+            
+            const idx = id === 'dashboard' ? 0 : (id === 'scan' ? 1 : (id === 'add' ? 2 : 3));
+            document.querySelectorAll('.nav-item')[idx].classList.add('active');
+
+            // KRİTİK STOK FİLTRESİ
+            if(filterCritical && id === 'products') {
+                const lowCodes = products.filter(p => Number(p.stock) <= Number(p.minStock)).map(p => p.barcode);
+                renderList(true); // Özel render
+            } else if (id === 'products') {
+                document.getElementById('search-box').value = "";
+                renderList();
+            }
         }
 
-        function saveLog(pName, type, amount) { db.ref('logs').push({ pName, type, amount, date: Date.now() }); }
+        function renderList(onlyCritical = false) {
+            const s = document.getElementById('search-box').value.toLowerCase();
+            const cont = document.getElementById('list-container');
+            let filtered = products.filter(p => p.name.toLowerCase().includes(s) || p.barcode.includes(s));
+            
+            if(onlyCritical) {
+                filtered = filtered.filter(p => Number(p.stock) <= Number(p.minStock));
+                document.getElementById('search-box').placeholder = "Kritik ürünler listeleniyor...";
+            } else {
+                document.getElementById('search-box').placeholder = "Depoda ara...";
+            }
 
-        function renderLogs() {
-            const cont = document.getElementById('dashboard-logs');
-            if(logs.length === 0) { cont.innerHTML = '<div style="text-align:center; padding:15px; color:#999">İşlem yok</div>'; return; }
-            cont.innerHTML = logs.map(l => {
-                let color = 'var(--primary)'; let icon = '•';
-                if(l.type === 'out') { color = 'var(--danger)'; icon = '↓'; }
-                if(l.type === 'in') { color = 'var(--success)'; icon = '↑'; }
-                const date = new Date(l.date).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'});
-                return `<div class="log-item-small"><div class="log-dot" style="background:${color}"></div><div style="flex:1"><span style="font-weight:600">${l.pName}</span><span style="font-size:11px; color:#999; margin-left:5px">${date}</span></div><div style="font-weight:700; color:${color}">${icon} ${l.amount}</div></div>`;
+            cont.innerHTML = filtered.map(p => {
+                const isLow = Number(p.stock) <= Number(p.minStock);
+                return `
+                <div class="item-card" onclick="openEdit('${p.id}')" style="border-left: 5px solid ${isLow ? 'var(--danger)' : 'var(--success)'}">
+                    <img src="${p.image || 'https://via.placeholder.com/60'}" class="item-img">
+                    <div style="flex:1"><b>${p.name}</b><br><small>${p.barcode}</small></div>
+                    <div style="text-align:right"><b>${p.stock}</b><br><small>₺${p.price}</small></div>
+                </div>`;
             }).join('');
         }
 
-        function clearLogs() { if(confirm("Geçmiş silinsin mi?")) db.ref('logs').remove(); }
+        // DİĞER FONKSİYONLAR (LOG, SAVE, UPDATE)
+        function renderLogs() {
+            const cont = document.getElementById('log-container');
+            if(!cont) return;
+            if(logs.length === 0) { cont.innerHTML = '<div style="text-align:center; padding:15px; color:#999; font-size:12px">Henüz işlem yok</div>'; return; }
+            cont.innerHTML = logs.map(l => {
+                const color = l.type === 'out' ? 'var(--danger)' : (l.type === 'in' ? 'var(--success)' : 'var(--primary)');
+                return `<div class="item-card" style="border-left: 4px solid ${color}"><img src="${l.pImg || 'https://via.placeholder.com/50'}" class="item-img"><div style="flex:1"><div style="font-weight:600; font-size:13px">${l.pName}</div><div style="color:#999; font-size:11px">${new Date(l.date).toLocaleTimeString('tr-TR')}</div></div><div style="font-weight:700; color:${color}">${l.type==='out'?'-':'+'}${l.amount}</div></div>`;
+            }).join('');
+        }
 
-        function stockAction(type) {
-            const qty = Number(prompt("Miktar:")); if(!qty) return;
-            const id = document.getElementById('modal-id').value;
+        function saveLog(pName, pImg, type, amount) { db.ref('logs').push({ pName, pImg: pImg || '', type, amount, date: Date.now() }); }
+
+        function previewImg(input, targetId) { if(input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { tempImg = e.target.result; document.getElementById(targetId).src = tempImg; document.getElementById(targetId).style.display = 'block'; document.getElementById('add-icon-box').style.display = 'none'; }; r.readAsDataURL(input.files[0]); } }
+
+        function saveProduct() {
+            const p = { barcode: document.getElementById('inp-barcode').value, name: document.getElementById('inp-name').value, price: document.getElementById('inp-price').value, stock: document.getElementById('inp-stock').value, minStock: document.getElementById('inp-min').value || 5, image: tempImg };
+            if(!p.barcode || !p.name) return alert("Eksik alan!");
+            db.ref('products').push(p).then(() => { saveLog(p.name, p.image, 'in', p.stock); tempImg = ""; document.querySelectorAll('input').forEach(i => i.value = ""); document.getElementById('add-img-preview').style.display = 'none'; document.getElementById('add-icon-box').style.display = 'block'; switchTab('products'); });
+        }
+
+        function updateProduct() {
+            const id = document.getElementById('edit-id').value;
             const p = products.find(x => x.id === id);
-            const newStock = type === 'in' ? p.stock + qty : p.stock - qty;
-            if(newStock < 0) return;
-            p.stock = newStock; updateUI(); 
-            db.ref('products/'+id).update({stock: newStock});
-            saveLog(p.name, type, qty); closeModal();
+            const oldStock = Number(p.stock);
+            const newStock = Number(document.getElementById('edit-stock').value);
+            db.ref('products/' + id).update({ name: document.getElementById('edit-name').value, stock: newStock, price: document.getElementById('edit-price').value }).then(() => {
+                if(newStock !== oldStock) { saveLog(p.name, p.image, (newStock - oldStock) > 0 ? 'in' : 'out', Math.abs(newStock - oldStock)); }
+                closeModal();
+            });
         }
 
         function updateUI() {
-            const totalStock = products.reduce((a,b)=>a+(b.stock||0),0);
-            const totalValue = products.reduce((a,b)=>a+((b.stock||0)*(b.price||0)),0);
+            const tStock = products.reduce((a,b) => a + Number(b.stock), 0);
+            const tValue = products.reduce((a,b) => a + (Number(b.stock) * Number(b.price)), 0);
+            const tLow = products.filter(p => Number(p.stock) <= Number(p.minStock)).length;
             document.getElementById('d-count').innerText = products.length;
-            document.getElementById('d-stock').innerText = totalStock;
-            document.getElementById('d-value').innerText = '₺' + totalValue.toLocaleString('tr-TR');
-            document.getElementById('d-low').innerText = products.filter(p=>p.stock<=p.minStock).length;
+            document.getElementById('d-stock').innerText = tStock;
+            document.getElementById('d-value').innerText = '₺' + tValue.toLocaleString('tr-TR');
+            document.getElementById('d-low').innerText = tLow;
             renderList();
-        }
-
-        function renderList() {
-            const search = document.getElementById('search-box').value.toLowerCase();
-            const container = document.getElementById('list-container');
-            const filtered = products.filter(p => p.name.toLowerCase().includes(search) || p.barcode.includes(search));
-            container.innerHTML = filtered.map(p => `
-                <div class="product-card" onclick="openModal('${p.id}')">
-                    <img src="${p.image || 'https://via.placeholder.com/60'}" class="p-img">
-                    <div style="flex:1"><div style="font-weight:600">${p.name} <small>(${p.size||'-'})</small></div><div style="font-size:12px; color:var(--text-light)">${p.barcode}</div></div>
-                    <div style="text-align:right"><div style="padding:6px 10px; border-radius:12px; font-size:13px; font-weight:700; background:${p.stock<=p.minStock?'rgba(239,68,68,0.1)':'rgba(16,185,129,0.1)'}; color:${p.stock<=p.minStock?'var(--danger)':'var(--success)'}">${p.stock}</div></div>
-                </div>`).join('');
-        }
-
-        function saveProduct() {
-            const data = {
-                barcode: document.getElementById('inp-barcode').value,
-                name: document.getElementById('inp-name').value,
-                category: document.getElementById('inp-cat').value,
-                size: document.getElementById('inp-size').value,
-                price: Number(document.getElementById('inp-price').value),
-                stock: Number(document.getElementById('inp-stock').value),
-                minStock: 5,
-                image: tempImg
-            };
-            if(!data.barcode || !data.name) return;
-            db.ref('products').push(data).then(() => {
-                saveLog(data.name, 'new', data.stock);
-                document.querySelectorAll('input').forEach(i => i.value="");
-                tempImg = ""; document.getElementById('img-preview').style.display='none'; document.getElementById('upload-placeholder').style.display='block';
-                switchTab('products');
-            });
         }
 
         function startScanner() {
             Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-viewport') }, decoder: { readers: ["ean_reader", "code_128_reader"] } }, err => {
                 if(err) return; Quagga.start();
-                document.getElementById('btn-start').style.display='none'; document.getElementById('btn-stop').style.display='inline-flex';
+                document.getElementById('btn-start').style.display='none'; document.getElementById('btn-stop').style.display='block';
             });
             Quagga.onDetected(res => {
-                const code = res.codeResult.code; playBeep(); stopScanner();
+                const code = res.codeResult.code; stopScanner();
                 const found = products.find(p => p.barcode === code);
-                if(found) openModal(found.id);
-                else if(confirm("Eklensin mi?")) { document.getElementById('inp-barcode').value = code; switchTab('add'); }
+                if(found) openEdit(found.id);
+                else if(confirm("Ürün bulunamadı, eklensin mi?")) { document.getElementById('inp-barcode').value = code; switchTab('add'); }
             });
         }
-        function stopScanner() { Quagga.stop(); document.getElementById('btn-start').style.display='inline-flex'; document.getElementById('btn-stop').style.display='none'; }
-        function openModal(id) {
-            const p = products.find(x => x.id === id);
-            document.getElementById('modal-id').value = id;
-            document.getElementById('modal-title').innerText = p.name;
-            document.getElementById('modal-name').value = p.name;
-            document.getElementById('modal-price').value = p.price;
-            document.getElementById('modal-img').src = p.image || 'https://via.placeholder.com/80';
-            try { JsBarcode("#barcode-canvas", p.barcode, {height:40, displayValue:true}); } catch(e){}
-            document.getElementById('detail-modal').classList.add('active');
-        }
-        function closeModal() { document.getElementById('detail-modal').classList.remove('active'); }
-        function previewImage(input) {
-            if(input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => { tempImg = e.target.result; document.getElementById('img-preview').src = tempImg; document.getElementById('img-preview').style.display = 'block'; document.getElementById('upload-placeholder').style.display = 'none'; }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-        function toggleTheme() { const b = document.body; b.setAttribute('data-theme', b.getAttribute('data-theme')==='light'?'dark':'light'); }
-        function updateProduct() {
-            const id = document.getElementById('modal-id').value;
-            db.ref('products/'+id).update({ name: document.getElementById('modal-name').value, price: Number(document.getElementById('modal-price').value) });
-            closeModal();
-        }
-        function deleteProduct() { if(confirm("Silinsin mi?")) { db.ref('products/'+document.getElementById('modal-id').value).remove(); closeModal(); } }
+
+        function stopScanner() { Quagga.stop(); document.getElementById('btn-start').style.display='block'; document.getElementById('btn-stop').style.display='none'; }
+        function openEdit(id) { const p = products.find(x => x.id === id); document.getElementById('edit-id').value = id; document.getElementById('edit-name').value = p.name; document.getElementById('edit-stock').value = p.stock; document.getElementById('edit-price').value = p.price; document.getElementById('modal-img').src = p.image || 'https://via.placeholder.com/60'; document.getElementById('modal-name-text').innerText = p.name; document.getElementById('modal-barcode-text').innerText = p.barcode; document.getElementById('modal-edit').classList.add('active'); }
+        function clearLogs() { if(confirm("Geçmiş silinsin mi?")) db.ref('logs').remove(); }
+        function closeModal() { document.getElementById('modal-edit').classList.remove('active'); }
+        function deleteProduct() { if(confirm("Silinsin mi?")) db.ref('products/'+document.getElementById('edit-id').value).remove().then(()=>closeModal()); }
     </script>
 </body>
 </html>
