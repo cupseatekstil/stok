@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Stok Pro v9.3 - Luxury Repair</title>
+    <title>Stok Pro v9.4 - Scan Pro</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -35,25 +35,74 @@
         .pin-dot.active { background: #fff; border-color: #fff; transform: scale(1.1); box-shadow: 0 0 15px #fff; }
         .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
         .num-btn { width: 78px; height: 78px; border-radius: 50%; background: #1C1C1E; color: #fff; font-size: 30px; display: flex; align-items: center; justify-content: center; border: none; }
-        .num-btn:active { background: #333; transform: scale(0.9); }
-
-        /* --- UI --- */
+        
+        /* --- HEADER --- */
         .header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(25px); padding: 25px 20px 15px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: flex-end; }
         .header h2 { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
-        .header small { color: var(--label); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
 
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
+        
+        /* --- CARDS --- */
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
         .sq-card { background: var(--card); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; box-shadow: var(--shadow); cursor: pointer; }
         .sq-card .val { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin: 10px 0 2px; }
         .sq-card .label { font-size: 12px; font-weight: 600; color: var(--label); }
-
         .kasa-card { background: var(--main); color: #fff; border-radius: 28px; padding: 25px; margin-bottom: 20px; position: relative; overflow: hidden; }
 
+        /* --- NEW SCANNER UI (Geliştirilmiş) --- */
+        #scan-container { 
+            width: 100%; height: 350px; background: #000; border-radius: 32px; 
+            overflow: hidden; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        #scanner-viewport { width: 100%; height: 100%; }
+        #scanner-viewport video { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Vizör Köşeleri */
+        .scan-guide {
+            position: absolute; inset: 40px; border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 20px; box-shadow: 0 0 0 1000px rgba(0,0,0,0.5); pointer-events: none;
+        }
+        .scan-corner {
+            position: absolute; width: 40px; height: 40px; border: 4px solid #fff; border-radius: 4px; z-index: 10;
+        }
+        .tl { top: 40px; left: 40px; border-right: none; border-bottom: none; border-top-left-radius: 20px; }
+        .tr { top: 40px; right: 40px; border-left: none; border-bottom: none; border-top-right-radius: 20px; }
+        .bl { bottom: 40px; left: 40px; border-right: none; border-top: none; border-bottom-left-radius: 20px; }
+        .br { bottom: 40px; right: 40px; border-left: none; border-top: none; border-bottom-right-radius: 20px; }
+
+        /* Neon Lazer */
+        .scan-laser {
+            position: absolute; top: 50%; left: 40px; right: 40px; height: 2px;
+            background: #34C759; box-shadow: 0 0 20px #34C759;
+            animation: scanMove 2s infinite ease-in-out; z-index: 15; display: none;
+        }
+        @keyframes scanMove { 0%, 100% { transform: translateY(-100px); opacity: 0; } 50% { transform: translateY(100px); opacity: 1; } }
+
+        /* Overlay Buton */
+        #scan-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20;
+        }
+        .btn-scan-start {
+            background: #fff; color: #000; padding: 18px 30px; border-radius: 50px;
+            font-weight: 800; font-size: 16px; border: none; display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 10px 30px rgba(255,255,255,0.2); cursor: pointer; transition: 0.2s;
+        }
+        .btn-scan-start:active { transform: scale(0.95); }
+
+        .btn-stop-float {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 59, 48, 0.9); color: white; padding: 12px 24px;
+            border-radius: 30px; font-weight: 700; font-size: 13px; border: none;
+            backdrop-filter: blur(10px); z-index: 25; display: none; cursor: pointer;
+        }
+
+        /* --- LIST & ITEMS --- */
         .item-card { background: var(--card); border-radius: 20px; padding: 15px; display: flex; align-items: center; gap: 16px; margin-bottom: 12px; border: 0.5px solid var(--border); }
         .item-img { width: 55px; height: 55px; border-radius: 14px; object-fit: cover; background: var(--bg); }
         .item-info b { font-size: 15px; font-weight: 700; display: block; }
-        .item-info small { color: var(--label); font-size: 12px; font-weight: 500; }
 
         .input-group { background: #E9E9EB; border-radius: 14px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
         .input-group input { background: none; border: none; outline: none; width: 100%; font-size: 16px; font-weight: 500; }
@@ -62,17 +111,16 @@
         .btn { width: 100%; padding: 18px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn-black { background: var(--main); color: #fff; }
 
+        /* --- NAV --- */
         .bottom-nav { position: fixed; bottom: 20px; left: 20px; right: 20px; height: 75px; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(20px); border-radius: 25px; display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .nav-item { border: none; background: none; color: #666; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .nav-item.active { color: #fff; }
-        .nav-item i { font-size: 20px; }
+        .nav-item.active { color: #fff; transform: translateY(-5px); }
         .nav-item span { font-size: 10px; font-weight: 700; }
 
-        /* --- MODAL (Geliştirilmiş) --- */
+        /* --- MODAL --- */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); z-index: 2000; display:none; align-items:flex-end; }
         .modal.active { display:flex; }
         .modal-content { background: #fff; width: 100%; padding: 30px 25px 40px; border-radius: 35px 35px 0 0; max-height: 92vh; overflow-y: auto; }
-        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
     </style>
 </head>
 <body>
@@ -91,7 +139,7 @@
     </div>
 
     <div class="header">
-        <div><small id="header-date">YÜKLENİYOR</small><h2>Ana Sayfa</h2></div>
+        <div><small id="header-date">HOŞGELDİNİZ</small><h2>Ana Sayfa</h2></div>
         <i class="fa-solid fa-circle-user fa-2x" style="opacity: 0.1"></i>
     </div>
 
@@ -108,40 +156,41 @@
             <div class="dashboard-grid">
                 <div class="sq-card" onclick="switchTab('products')">
                     <i class="fa-solid fa-box"></i>
-                    <div>
-                        <div class="val" id="d-count">0</div>
-                        <div class="label">ÜRÜN ÇEŞİDİ</div>
-                    </div>
+                    <div><div class="val" id="d-count">0</div><div class="label">ÇEŞİT</div></div>
                 </div>
                 <div class="sq-card" onclick="switchTab('products')">
                     <i class="fa-solid fa-cubes"></i>
-                    <div>
-                        <div class="val" id="d-stock" style="color:var(--green)">0</div>
-                        <div class="label">TOPLAM ADET</div>
-                    </div>
+                    <div><div class="val" id="d-stock" style="color:var(--green)">0</div><div class="label">STOK</div></div>
                 </div>
                 <div class="sq-card">
                     <i class="fa-solid fa-chart-line"></i>
-                    <div>
-                        <div class="val" id="d-value" style="font-size: 18px;">₺0</div>
-                        <div class="label">MALİYET</div>
-                    </div>
+                    <div><div class="val" id="d-value" style="font-size: 18px;">₺0</div><div class="label">MALİYET</div></div>
                 </div>
                 <div class="sq-card" onclick="switchTab('products', true)">
                     <i class="fa-solid fa-triangle-exclamation" style="color:var(--red); opacity: 1;"></i>
-                    <div>
-                        <div class="val" id="d-low" style="color:var(--red)">0</div>
-                        <div class="label">KRİTİK STOK</div>
-                    </div>
+                    <div><div class="val" id="d-low" style="color:var(--red)">0</div><div class="label">KRİTİK</div></div>
                 </div>
             </div>
         </div>
 
         <div id="tab-scan" class="tab-content" style="display:none">
-            <div id="scanner-box"><div id="scanner-viewport" style="width:100%; height:100%"></div></div>
-            <button class="btn btn-black" id="btn-start" onclick="startScanner()" style="margin-top:20px">TARAMAYI BAŞLAT</button>
-            <button class="btn" id="btn-stop" onclick="stopScanner()" style="display:none; color:var(--red); margin-top:10px">DURDUR</button>
-            <div id="log-container" style="margin-top:20px"></div>
+            <div id="scanner-box">
+                <div id="scanner-viewport"></div>
+                <div class="scan-guide"></div>
+                <div class="scan-corner tl"></div><div class="scan-corner tr"></div>
+                <div class="scan-corner bl"></div><div class="scan-corner br"></div>
+                <div class="scan-laser" id="laser"></div>
+                <div id="scan-overlay">
+                    <button class="btn-scan-start" onclick="startScanner()">
+                        <i class="fa-solid fa-expand"></i> TARAMAYI BAŞLAT
+                    </button>
+                    <small style="color:rgba(255,255,255,0.6); margin-top:15px; font-weight:600">Kamerayı barkoda hizalayın</small>
+                </div>
+                <button class="btn-stop-float" id="btn-stop" onclick="stopScanner()">KAMERAYI KAPAT</button>
+            </div>
+            
+            <h4 style="margin:30px 0 15px; font-weight:800; font-size:12px; color:var(--label); text-transform: uppercase;">Son İşlemler</h4>
+            <div id="log-container"></div>
         </div>
 
         <div id="tab-add" class="tab-content" style="display:none">
@@ -154,18 +203,18 @@
             <div class="input-group"><input type="text" id="inp-name" placeholder="Ürün Adı"></div>
             <div class="input-group"><input type="text" id="inp-size" placeholder="Beden / Ölçü"></div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
-                <div class="input-group"><input type="number" id="inp-buy" placeholder="Alış Fiyatı"></div>
-                <div class="input-group"><input type="number" id="inp-price" placeholder="Satış Fiyatı"></div>
+                <div class="input-group"><input type="number" id="inp-buy" placeholder="Alış"></div>
+                <div class="input-group"><input type="number" id="inp-price" placeholder="Satış"></div>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
                 <div class="input-group"><input type="number" id="inp-stock" placeholder="Stok"></div>
-                <div class="input-group"><input type="number" id="inp-min" placeholder="Kritik Limit"></div>
+                <div class="input-group"><input type="number" id="inp-min" placeholder="Kritik"></div>
             </div>
             <button class="btn btn-black" onclick="saveProduct()">DEPOYA KAYDET</button>
         </div>
 
         <div id="tab-products" class="tab-content" style="display:none">
-            <div class="input-group" style="background:#fff; border: 0.5px solid var(--border); margin-bottom: 20px;">
+            <div class="input-group" style="background:#fff; border: 1px solid var(--border); margin-bottom: 20px;">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" id="search-box" placeholder="Ürün veya barkod ara..." oninput="renderList()">
             </div>
@@ -175,32 +224,30 @@
 
     <div class="modal" id="modal-edit">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 style="font-size:22px; font-weight:800;">Ürün Yönetimi</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                <h2 style="font-size:22px; font-weight:800;">Ürün Detayı</h2>
                 <i class="fa-solid fa-circle-xmark fa-2x" onclick="closeModal()" style="color:#AEAEB2"></i>
             </div>
             <div style="display:flex; gap:20px; align-items:center; margin-bottom:25px;">
                 <img id="modal-img" style="width:75px; height:75px; border-radius:18px; object-fit:cover; box-shadow: var(--shadow);">
                 <div><b id="modal-name-text" style="font-size:18px"></b><br><small id="modal-barcode-text" style="color:var(--label)"></small></div>
             </div>
-            
             <input type="hidden" id="edit-id">
             <div class="input-group locked"><i class="fa-solid fa-lock"></i><input type="text" id="edit-barcode" readonly></div>
-            <div class="input-group"><i class="fa-solid fa-tag"></i><input type="text" id="edit-name" placeholder="İsim"></div>
-            <div class="input-group"><i class="fa-solid fa-ruler"></i><input type="text" id="edit-size" placeholder="Beden"></div>
+            <div class="input-group"><i class="fa-solid fa-tag"></i><input type="text" id="edit-name"></div>
+            <div class="input-group"><i class="fa-solid fa-ruler"></i><input type="text" id="edit-size"></div>
             
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
-                <div class="input-group"><i class="fa-solid fa-cubes"></i><input type="number" id="edit-stock" placeholder="Stok"></div>
-                <div class="input-group"><i class="fa-solid fa-bell"></i><input type="number" id="edit-min" placeholder="Kritik Limit"></div>
+                <div class="input-group"><i class="fa-solid fa-cubes"></i><input type="number" id="edit-stock"></div>
+                <div class="input-group"><i class="fa-solid fa-bell"></i><input type="number" id="edit-min"></div>
             </div>
-            
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
-                <div class="input-group"><i class="fa-solid fa-down-left"></i><input type="number" id="edit-buy" placeholder="Alış"></div>
-                <div class="input-group"><i class="fa-solid fa-up-right"></i><input type="number" id="edit-price" placeholder="Satış"></div>
+                <div class="input-group"><i class="fa-solid fa-down-left"></i><input type="number" id="edit-buy"></div>
+                <div class="input-group"><i class="fa-solid fa-up-right"></i><input type="number" id="edit-price"></div>
             </div>
 
-            <button class="btn btn-black" onclick="updateProduct()" style="margin-top:10px">DEĞİŞİKLİKLERİ KAYDET</button>
-            <button class="btn" style="color:var(--red); background:none; font-weight:700; margin-top:10px" onclick="deleteProduct()">ÜRÜNÜ SİL</button>
+            <button class="btn btn-black" onclick="updateProduct()" style="margin-top:10px">GÜNCELLE</button>
+            <button class="btn" style="color:var(--red); background:none; font-weight:700; margin-top:10px" onclick="deleteProduct()">SİL</button>
         </div>
     </div>
 
@@ -221,7 +268,6 @@
         function updateDots() { document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('active', i < currentPin.length)); }
         function submitPin() { if(currentPin === "588558") { localStorage.setItem('stokAuth', 'true'); document.getElementById('login-screen').style.display = 'none'; initApp(); } else { currentPin = ""; updateDots(); } }
         function logout() { localStorage.removeItem('stokAuth'); location.reload(); }
-        
         window.onload = () => {
             const date = new Date();
             document.getElementById('header-date').innerText = date.toLocaleDateString('tr-TR', { day:'numeric', month:'long' }).toUpperCase();
@@ -229,17 +275,8 @@
         };
 
         function initApp() {
-            db.ref('products').on('value', snap => {
-                const data = snap.val();
-                products = data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : [];
-                updateUI();
-            });
-            db.ref('logs').limitToLast(15).on('value', snap => {
-                const data = snap.val();
-                logs = data ? Object.values(data).reverse() : [];
-                renderLogs();
-                updateKasaOzet();
-            });
+            db.ref('products').on('value', snap => { const data = snap.val(); products = data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : []; updateUI(); });
+            db.ref('logs').limitToLast(15).on('value', snap => { const data = snap.val(); logs = data ? Object.values(data).reverse() : []; renderLogs(); updateKasaOzet(); });
         }
 
         function updateUI() {
@@ -258,14 +295,9 @@
             const cont = document.getElementById('list-container');
             let filtered = products.filter(p => p.name.toLowerCase().includes(s) || p.barcode.includes(s));
             if(onlyLow) filtered = filtered.filter(p => Number(p.stock) <= Number(p.minStock || 5));
-
             cont.innerHTML = filtered.map(p => {
                 const isLow = Number(p.stock) <= Number(p.minStock || 5);
-                return `<div class="item-card" onclick="openEdit('${p.id}')">
-                    <img src="${p.image || 'https://via.placeholder.com/60'}" class="item-img">
-                    <div style="flex:1"><b>${p.name}</b><small>${p.barcode} • ${p.size || 'STD'}</small></div>
-                    <div style="text-align:right"><b style="${isLow?'color:var(--red)':''}">${p.stock}</b><small>₺${p.price}</small></div>
-                </div>`;
+                return `<div class="item-card" onclick="openEdit('${p.id}')"><img src="${p.image || 'https://via.placeholder.com/60'}" class="item-img"><div style="flex:1"><b>${p.name}</b><small>${p.barcode} • ${p.size || 'STD'}</small></div><div style="text-align:right"><b style="${isLow?'color:var(--red)':''}">${p.stock}</b><small>₺${p.price}</small></div></div>`;
             }).join('');
         }
 
@@ -308,27 +340,27 @@
         }
 
         function startScanner() {
-            document.getElementById('btn-start').style.display = 'none';
+            document.getElementById('scan-overlay').style.display = 'none';
+            document.getElementById('laser').style.display = 'block';
             document.getElementById('btn-stop').style.display = 'block';
-            Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-viewport'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader", "code_128_reader"] } }, err => { if(!err) Quagga.start(); });
-            Quagga.onDetected(res => { stopScanner(); if(navigator.vibrate) navigator.vibrate(100); const found = products.find(p => p.barcode === res.codeResult.code); if(found) openEdit(found.id); else if(confirm("Ürün yok, ekle?")) { document.getElementById('inp-barcode').value = res.codeResult.code; switchTab('add'); } });
+            Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-viewport'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader", "code_128_reader"] }, locate: true }, err => { if(!err) Quagga.start(); });
+            Quagga.onDetected(res => { 
+                const code = res.codeResult.code; 
+                stopScanner(); 
+                if(navigator.vibrate) navigator.vibrate(100); 
+                const found = products.find(p => p.barcode === code); 
+                if(found) openEdit(found.id); 
+                else if(confirm("Ürün yok, ekle?")) { document.getElementById('inp-barcode').value = code; switchTab('add'); } 
+            });
         }
 
-        function stopScanner() { Quagga.stop(); document.getElementById('btn-start').style.display = 'block'; document.getElementById('btn-stop').style.display = 'none'; }
-        function closeModal() { document.getElementById('modal-edit').classList.remove('active'); }
-        function switchTab(id, lowOnly = false) {
-            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById('tab-' + id).style.display = 'block';
-            document.getElementById('page-title').innerText = id === 'dashboard' ? 'Ana Sayfa' : (id === 'scan' ? 'Okut' : (id === 'add' ? 'Yeni Ürün' : 'Depo'));
-            const idx = id === 'dashboard' ? 0 : (id === 'scan' ? 1 : (id === 'add' ? 2 : 3));
-            document.querySelectorAll('.nav-item')[idx].classList.add('active');
-            if(id === 'products') renderList(lowOnly);
-        }
-        function saveProduct() { const p = { barcode: document.getElementById('inp-barcode').value, name: document.getElementById('inp-name').value, size: document.getElementById('inp-size').value, buyPrice: Number(document.getElementById('inp-buy').value), price: Number(document.getElementById('inp-price').value), stock: Number(document.getElementById('inp-stock').value), minStock: Number(document.getElementById('inp-min').value) || 5, image: tempImg }; db.ref('products').push(p).then(() => { tempImg = ""; document.querySelectorAll('#tab-add input').forEach(i => i.value = ""); document.getElementById('add-img-preview').style.display='none'; document.getElementById('add-icon').style.display='flex'; switchTab('products'); }); }
+        function stopScanner() { Quagga.stop(); document.getElementById('scan-overlay').style.display = 'flex'; document.getElementById('laser').style.display = 'none'; document.getElementById('btn-stop').style.display = 'none'; }
+        function switchTab(id, lowOnly = false) { document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById('tab-' + id).style.display = 'block'; const idx = id === 'dashboard' ? 0 : (id === 'scan' ? 1 : (id === 'add' ? 2 : 3)); document.querySelectorAll('.nav-item')[idx].classList.add('active'); if(id === 'products') renderList(lowOnly); }
+        function saveProduct() { const p = { barcode: document.getElementById('inp-barcode').value, name: document.getElementById('inp-name').value, size: document.getElementById('inp-size').value, buyPrice: Number(document.getElementById('inp-buy').value), price: Number(document.getElementById('inp-price').value), stock: Number(document.getElementById('inp-stock').value), minStock: Number(document.getElementById('inp-min').value) || 5, image: tempImg }; db.ref('products').push(p).then(() => { tempImg = ""; document.querySelectorAll('#tab-add input').forEach(i => i.value = ""); document.getElementById('add-img-preview').style.display='none'; document.getElementById('add-icon').style.display='block'; switchTab('products'); }); }
         function previewImg(input, target) { if(input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { tempImg = e.target.result; document.getElementById(target).src = tempImg; document.getElementById(target).style.display = 'block'; document.getElementById('add-icon').style.display='none'; }; r.readAsDataURL(input.files[0]); } }
-        function renderLogs() { const cont = document.getElementById('log-container'); if(!cont) return; cont.innerHTML = logs.map(l => `<div class="item-card"><img src="${l.pImg}" class="item-img"><div style="flex:1"><b>${l.pName}</b><small>${l.type==='out'?'SATIŞ':'GİRİŞ'}</small></div><b>${l.type==='out'?'-':'+'}${l.amount}</b></div>`).join(''); }
+        function renderLogs() { const cont = document.getElementById('log-container'); if(!cont) return; cont.innerHTML = logs.map(l => `<div class="item-card"><img src="${l.pImg}" class="item-img"><div style="flex:1"><b>${l.pName}</b><small>${l.type==='out'?'SATIŞ':'GİRİŞ'}</small></div><b style="color:${l.type==='out'?'var(--red)':'var(--green)'}">${l.type==='out'?'-':'+'}${l.amount}</b></div>`).join(''); }
         function updateKasaOzet() { const today = new Date().toLocaleDateString(); const tLogs = logs.filter(l => new Date(l.date).toLocaleDateString() === today); const ciro = tLogs.reduce((a,b) => a + (b.ciro || 0), 0); const profit = tLogs.reduce((a,b) => a + (b.profit || 0), 0); document.getElementById('daily-ciro').innerText = 'Satış: ₺' + ciro.toLocaleString('tr-TR'); document.getElementById('daily-profit').innerText = '₺' + profit.toLocaleString('tr-TR', {minimumFractionDigits: 2}); }
+        function closeModal() { document.getElementById('modal-edit').classList.remove('active'); }
         function deleteProduct() { if(confirm("Emin misiniz?")) db.ref('products/'+document.getElementById('edit-id').value).remove().then(()=>closeModal()); }
         function clearPin() { currentPin = ""; updateDots(); }
     </script>
