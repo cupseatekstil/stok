@@ -194,11 +194,10 @@
         function clearPin() { currentPin = ""; updateDots(); }
         function submitPin() { if(currentPin === "588558") { localStorage.setItem('stokAuth', 'true'); document.getElementById('login-screen').style.display = 'none'; initApp(); } else { alert("Yanlış!"); currentPin = ""; updateDots(); } }
 
-        // LOGOUT TAMİRİ
         function logoutConfirm() {
             if(confirm("Çıkış yapmak istediğinize emin misiniz?")) {
                 localStorage.removeItem('stokAuth');
-                location.reload(); // Sayfayı yenileyerek giriş ekranına atar
+                location.reload();
             }
         }
 
@@ -217,26 +216,58 @@
         }
 
         function startScanner() {
-            isScanningProcessing = false; document.getElementById('scan-overlay').style.display = 'none'; document.getElementById('laser').style.display = 'block'; document.getElementById('btn-cancel').style.display = 'block';
+            isScanningProcessing = false; 
+            document.getElementById('scan-overlay').style.display = 'none'; 
+            document.getElementById('laser').style.display = 'block'; 
+            document.getElementById('btn-cancel').style.display = 'block';
+            
             Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-viewport'), constraints: { facingMode: "environment" } }, locator: { patchSize: "large", halfSample: false }, decoder: { readers: ["ean_reader", "code_128_reader"] } }, err => { if(!err) Quagga.start(); });
+            
             Quagga.onDetected(res => {
-                if(isScanningProcessing) return; isScanningProcessing = true; const code = res.codeResult.code; Quagga.stop();
+                // ÇOKLU OKUMA ENGELLEYİCİ
+                if(isScanningProcessing) return; 
+                isScanningProcessing = true;
+                
+                const code = res.codeResult.code;
+                Quagga.stop(); // Okunduğu an kamerayı durdurur
+
                 const found = products.find(p => p.barcode === code);
                 if(found) {
                     const qty = currentScanQty;
                     db.ref('products/' + found.id).update({ stock: found.stock - qty }).then(() => {
                         db.ref('logs').push({ pName: found.name, pImg: found.image || '', type: 'out', amount: qty, ciro: qty * found.price, profit: qty * (found.price - (found.buyPrice || 0)), date: Date.now() });
-                        alert(`${found.name}: ${qty} Satıldı.`); isScanningProcessing = false; stopScanner();
+                        alert(`${found.name}: ${qty} Satıldı.`); 
+                        stopScanner();
                     });
                 } else {
-                    if(confirm("Yeni Ürün?")) { document.getElementById('inp-barcode').value = code; switchTab('add'); }
-                    isScanningProcessing = false; stopScanner();
+                    // ÜST ÜSTE CONFIRM ÇIKMASINI ENGELLER
+                    setTimeout(() => {
+                        if(confirm("Yeni Ürün Eklensin mi? \nBarkod: " + code)) { 
+                            document.getElementById('inp-barcode').value = code; 
+                            switchTab('add'); 
+                            stopScanner();
+                        } else {
+                            isScanningProcessing = false;
+                            startScanner(); // İptal edilirse tekrar başla
+                        }
+                    }, 300);
                 }
             });
         }
 
-        function stopScanner() { Quagga.stop(); document.getElementById('scan-overlay').style.display = 'flex'; document.getElementById('laser').style.display = 'none'; document.getElementById('btn-cancel').style.display = 'none'; isScanningProcessing = false; }
-        function switchTab(id, lowOnly = false) { document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none'); document.getElementById('tab-' + id).style.display = 'block'; if(id === 'products') renderList(lowOnly); }
+        function stopScanner() { 
+            Quagga.stop(); 
+            document.getElementById('scan-overlay').style.display = 'flex'; 
+            document.getElementById('laser').style.display = 'none'; 
+            document.getElementById('btn-cancel').style.display = 'none'; 
+            isScanningProcessing = false; 
+        }
+
+        function switchTab(id, lowOnly = false) { 
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none'); 
+            document.getElementById('tab-' + id).style.display = 'block'; 
+            if(id === 'products') renderList(lowOnly); 
+        }
 
         function updateUI() {
             const tCost = products.reduce((a,b) => a + (Number(b.stock || 0) * Number(b.buyPrice || 0)), 0);
