@@ -42,60 +42,47 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text-main); padding-bottom: 100px; transition: background 0.3s, color 0.3s; }
 
+        /* --- GİRİŞ EKRANI VE LOGO --- */
         #login-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .pin-dots { display: flex; gap: 20px; margin: 50px 0; }
+        .login-logo { width: 180px; height: auto; margin-bottom: 10px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); }
+        .pin-dots { display: flex; gap: 20px; margin: 35px 0; }
         .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #333; transition: 0.3s; }
         .pin-dot.active { background: #fff; border-color: #fff; transform: scale(1.1); box-shadow: 0 0 15px #fff; }
         .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
         .num-btn { width: 78px; height: 78px; border-radius: 50%; background: #1C1C1E; color: #fff; font-size: 30px; display: flex; align-items: center; justify-content: center; border: none; }
         
+        /* --- HEADER --- */
         .header { background: var(--nav-bg); backdrop-filter: blur(25px); padding: 25px 20px 15px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: flex-end; transition: 0.3s; }
         .header h2 { font-size: 26px; font-weight: 800; letter-spacing: -1px; }
         .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--input-bg); color: var(--text-main); font-size: 18px; cursor: pointer; }
 
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
-        
         .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-        .sq-card { background: var(--card); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; box-shadow: var(--shadow); cursor: pointer; transition: 0.2s; border: 1px solid var(--border); }
-        .sq-card:active { transform: scale(0.96); }
-        .sq-card .val { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin: 10px 0 2px; }
-        .sq-card .label { font-size: 12px; font-weight: 700; color: var(--label); text-transform: uppercase; }
-        .sq-card.black-card { background: var(--text-main); color: var(--bg); border: 1px solid rgba(255,255,255,0.1); }
-        .sq-card.black-card i { color: var(--bg); opacity: 1; }
-        .sq-card.black-card .label { color: var(--label); }
+        .sq-card { background: var(--card); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px; box-shadow: var(--shadow); cursor: pointer; border: 1px solid var(--border); transition: 0.2s; }
+        .sq-card.black-card { background: var(--text-main); color: var(--bg); }
+        .kasa-card { background: var(--text-main); color: var(--bg); border-radius: 28px; padding: 25px; margin-bottom: 20px; }
 
-        .kasa-card { background: var(--text-main); color: var(--bg); border-radius: 28px; padding: 25px; margin-bottom: 20px; position: relative; overflow: hidden; }
-
-        /* MİKTAR SEÇİCİ STİLİ */
-        .qty-selector-container {
-            display: flex; justify-content: center; align-items: center; gap: 15px;
-            background: var(--card); padding: 15px; border-radius: 24px; margin-bottom: 15px;
-            border: 1px solid var(--border); box-shadow: var(--shadow);
-        }
-        .qty-btn {
-            width: 45px; height: 45px; border-radius: 50%; border: none;
-            background: var(--input-bg); color: var(--text-main); font-size: 20px; font-weight: 700;
-        }
+        /* --- ADET SEÇİCİ --- */
+        .qty-selector { display: flex; justify-content: center; align-items: center; gap: 15px; background: var(--card); padding: 15px; border-radius: 24px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+        .qty-btn { width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--input-bg); color: var(--text-main); font-size: 22px; font-weight: 700; cursor: pointer; }
         #scan-qty-display { font-size: 24px; font-weight: 800; min-width: 40px; text-align: center; }
 
+        /* --- SCANNER --- */
         #scanner-box { width: 100%; height: 350px; background: #000; border-radius: 32px; overflow: hidden; position: relative; border: 1px solid var(--border); }
         #scanner-viewport { width: 100%; height: 100%; }
         #scanner-viewport video { width: 100%; height: 100%; object-fit: cover; }
-        .scan-guide { position: absolute; inset: 40px; border: 2px solid rgba(255,255,255,0.3); border-radius: 20px; pointer-events: none; }
         .scan-laser { position: absolute; top: 50%; left: 40px; right: 40px; height: 2px; background: #34C759; box-shadow: 0 0 20px #34C759; animation: scanMove 2s infinite ease-in-out; z-index: 15; display: none; }
         @keyframes scanMove { 0%, 100% { transform: translateY(-100px); opacity: 0; } 50% { transform: translateY(100px); opacity: 1; } }
         #scan-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
-        .btn-scan-start { background: #fff; color: #000; padding: 18px 30px; border-radius: 50px; font-weight: 800; font-size: 16px; border: none; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(255,255,255,0.2); cursor: pointer; }
-        .btn-cancel-scan { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 12px 35px; border-radius: 30px; font-weight: 700; font-size: 14px; border: 1px solid rgba(255,255,255,0.2); z-index: 30; display: none; cursor: pointer; }
+        .btn-scan-start { background: #fff; color: #000; padding: 18px 30px; border-radius: 50px; font-weight: 800; border: none; cursor: pointer; }
+        .btn-cancel-scan { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; padding: 12px 35px; border-radius: 30px; font-weight: 700; border: 1px solid rgba(255,255,255,0.2); z-index: 30; display: none; cursor: pointer; }
 
-        .item-card { background: var(--card); border-radius: 20px; padding: 15px; display: flex; align-items: center; gap: 16px; margin-bottom: 12px; border: 0.5px solid var(--border); transition: 0.3s; }
+        .item-card { background: var(--card); border-radius: 20px; padding: 15px; display: flex; align-items: center; gap: 16px; margin-bottom: 12px; border: 0.5px solid var(--border); }
         .item-img { width: 60px; height: 60px; border-radius: 14px; object-fit: cover; background: var(--input-bg); }
         .input-group { background: var(--input-bg); border-radius: 14px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); }
-        .input-group input { background: none; border: none; outline: none; width: 100%; font-size: 16px; font-weight: 500; color: var(--text-main); }
-        .btn { width: 100%; padding: 18px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .btn-black { background: var(--text-main); color: var(--bg); }
-
-        .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: var(--text-main); border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: 0.3s; }
+        .input-group input { background: none; border: none; outline: none; width: 100%; font-size: 16px; color: var(--text-main); }
+        
+        .bottom-nav { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: var(--text-main); border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); cursor: pointer; }
         .bottom-nav i { color: var(--bg); font-size: 24px; }
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(15px); z-index: 2000; display:none; align-items:flex-end; }
         .modal.active { display:flex; }
@@ -105,7 +92,7 @@
 <body data-theme="light">
 
     <div id="login-screen">
-        <div style="font-size: 40px; color: #fff; margin-bottom: 20px;"><i class="fa-solid fa-fingerprint"></i></div>
+        <img src="https://i.ibb.co/7d5L2PpC/white-text-transparent-bg-1.png" class="login-logo" alt="Stok Pro Logo">
         <div class="pin-dots" id="pinDots">
             <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
         </div>
@@ -134,7 +121,6 @@
                     <span id="daily-ciro" style="font-size: 13px; opacity: 0.7; font-weight: 600;">Satış: ₺0</span>
                 </div>
             </div>
-
             <div class="dashboard-grid">
                 <div class="sq-card" onclick="switchTab('products')"><i class="fa-solid fa-boxes-stacked" style="font-size: 24px; opacity:0.8"></i><div><div class="val" id="d-count">0</div><div class="label">DEPO</div></div></div>
                 <div class="sq-card black-card" onclick="switchTab('scan')"><i class="fa-solid fa-barcode" style="font-size: 24px;"></i><div><div class="val" style="font-size:20px; font-weight:900">OKUT</div><div class="label">BARKOD</div></div></div>
@@ -144,80 +130,33 @@
         </div>
 
         <div id="tab-scan" class="tab-content" style="display:none">
-            <div class="qty-selector-container">
-                <span style="font-weight: 700; color: var(--label); font-size: 13px;">SATIŞ ADEDİ:</span>
+            <div class="qty-selector">
+                <span style="font-weight: 700; color: var(--label); font-size: 12px;">SATIŞ ADEDİ:</span>
                 <button class="qty-btn" onclick="adjustScanQty(-1)">-</button>
                 <div id="scan-qty-display">1</div>
                 <button class="qty-btn" onclick="adjustScanQty(1)">+</button>
             </div>
-
             <div id="scanner-box">
                 <div id="scanner-viewport"></div>
                 <div class="scan-laser" id="laser"></div>
-                <div id="scan-overlay">
-                    <button class="btn-scan-start" onclick="startScanner()"><i class="fa-solid fa-expand"></i> TARAMAYI BAŞLAT</button>
-                    <small style="color:rgba(255,255,255,0.6); margin-top:15px; font-weight:600">Kamerayı barkoda hizalayın</small>
-                </div>
+                <div id="scan-overlay"><button class="btn-scan-start" onclick="startScanner()">TARAMAYI BAŞLAT</button></div>
                 <button class="btn-cancel-scan" id="btn-cancel" onclick="stopScanner()">VAZGEÇ</button>
             </div>
-            <h4 style="margin:30px 0 15px; font-weight:800; font-size:12px; color:var(--label); text-transform: uppercase;">Son İşlemler</h4>
+            <h4 style="margin:25px 0 10px; font-size:12px; color:var(--label); text-transform: uppercase;">Son İşlemler</h4>
             <div id="log-container"></div>
         </div>
 
         <div id="tab-add" class="tab-content" style="display:none">
-            <div style="background:var(--input-bg); height:150px; border-radius:24px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; overflow:hidden" onclick="document.getElementById('file-input').click()">
-                <input type="file" id="file-input" hidden accept="image/*" onchange="previewImg(this, 'add-img-preview')">
-                <img id="add-img-preview" style="width:100%; height:100%; object-fit:cover; display:none">
-                <i class="fa-solid fa-camera fa-2x" id="add-icon" style="color:var(--label)"></i>
-            </div>
             <div class="input-group"><i class="fa-solid fa-barcode"></i><input type="text" id="inp-barcode" placeholder="Barkod"></div>
             <div class="input-group"><i class="fa-solid fa-tag"></i><input type="text" id="inp-name" placeholder="Ürün Adı"></div>
-            <div class="input-group"><i class="fa-solid fa-ruler"></i><input type="text" id="inp-size" placeholder="Beden / Ölçü"></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
                 <div class="input-group"><input type="number" id="inp-buy" placeholder="Alış"></div>
                 <div class="input-group"><input type="number" id="inp-price" placeholder="Satış"></div>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
-                <div class="input-group"><input type="number" id="inp-stock" placeholder="Stok"></div>
-                <div class="input-group"><input type="number" id="inp-min" placeholder="Kritik"></div>
-            </div>
-            <button class="btn btn-black" onclick="saveProduct()">DEPOYA KAYDET</button>
+            <div class="input-group"><input type="number" id="inp-stock" placeholder="Stok"></div>
+            <button class="btn btn-black" style="width:100%; padding:18px; border-radius:15px;" onclick="saveProduct()">DEPOYA KAYDET</button>
         </div>
-
-        <div id="tab-products" class="tab-content" style="display:none">
-            <div class="input-group" style="background:var(--card); border: 1px solid var(--border); margin-bottom: 20px;">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="search-box" placeholder="Ürün veya barkod ara..." oninput="renderList()">
-            </div>
-            <div id="list-container"></div>
-        </div>
-    </div>
-
-    <div class="modal" id="modal-edit">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                <h2 style="font-size:22px; font-weight:800;">Ürün Detayı</h2>
-                <i class="fa-solid fa-circle-xmark fa-2x" onclick="closeModal()" style="color:var(--label)"></i>
-            </div>
-            <div style="display:flex; gap:20px; align-items:center; margin-bottom:25px;">
-                <img id="modal-img" style="width:75px; height:75px; border-radius:18px; object-fit:cover;">
-                <div><b id="modal-name-text" style="font-size:18px"></b><br><small id="modal-barcode-text" style="color:var(--label)"></small></div>
-            </div>
-            <input type="hidden" id="edit-id">
-            <div class="input-group locked"><i class="fa-solid fa-lock"></i><input type="text" id="edit-barcode" readonly></div>
-            <div class="input-group"><i class="fa-solid fa-tag"></i><input type="text" id="edit-name"></div>
-            <div class="input-group"><i class="fa-solid fa-ruler"></i><input type="text" id="edit-size"></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
-                <div class="input-group"><i class="fa-solid fa-cubes"></i><input type="number" id="edit-stock"></div>
-                <div class="input-group"><i class="fa-solid fa-bell"></i><input type="number" id="edit-min"></div>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
-                <div class="input-group"><i class="fa-solid fa-down-left"></i><input type="number" id="edit-buy"></div>
-                <div class="input-group"><i class="fa-solid fa-up-right"></i><input type="number" id="edit-price"></div>
-            </div>
-            <button class="btn btn-black" onclick="updateProduct()">GÜNCELLE</button>
-            <button class="btn" style="color:var(--red); background:none; font-weight:700; margin-top:10px" onclick="deleteProduct()">SİL</button>
-        </div>
+        <div id="tab-products" class="tab-content" style="display:none"><div id="list-container"></div></div>
     </div>
 
     <div class="bottom-nav" onclick="switchTab('dashboard')"><i class="fa-solid fa-house"></i></div>
@@ -226,128 +165,75 @@
         const firebaseConfig = { apiKey: "AIzaSyBt5AmmhZc6sI764z8hMjGusAzNRMIrxLw", authDomain: "stoktakip-4779c.firebaseapp.com", databaseURL: "https://stoktakip-4779c-default-rtdb.firebaseio.com", projectId: "stoktakip-4779c", storageBucket: "stoktakip-4779c.firebasestorage.app", messagingSenderId: "751946906534", appId: "1:751946906534:web:e28257e6487a638af7ed67" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let products = [], logs = [], currentPin = "", tempImg = "";
-        let isScanningProcessing = false;
-        let currentScanQty = 1; // Tarama için adet değişkeni
+        let products = [], logs = [], currentPin = "", currentScanQty = 1, isScanningProcessing = false;
 
-        function adjustScanQty(val) {
-            currentScanQty = Math.max(1, currentScanQty + val);
-            document.getElementById('scan-qty-display').innerText = currentScanQty;
-        }
-
+        function adjustScanQty(val) { currentScanQty = Math.max(1, currentScanQty + val); document.getElementById('scan-qty-display').innerText = currentScanQty; }
         function enterPin(n) { if(currentPin.length < 6) { currentPin += n; updateDots(); if(currentPin.length === 6) setTimeout(submitPin, 200); } }
         function updateDots() { document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('active', i < currentPin.length)); }
         function submitPin() { if(currentPin === "588558") { localStorage.setItem('stokAuth', 'true'); document.getElementById('login-screen').style.display = 'none'; initApp(); } else { currentPin = ""; updateDots(); } }
-        function logoutConfirm() { if(confirm("Çıkış yapılsın mı?")) { localStorage.removeItem('stokAuth'); location.reload(); } }
+        function logoutConfirm() { if(confirm("Çıkış?")) { localStorage.removeItem('stokAuth'); location.reload(); } }
         function toggleTheme() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'light' ? 'dark' : 'light'); }
 
-        window.onload = () => { 
+        function initApp() {
             const date = new Date();
             document.getElementById('header-date').innerText = date.toLocaleDateString('tr-TR', { day:'numeric', month:'long' }).toUpperCase();
-            if(localStorage.getItem('stokAuth') === 'true') { document.getElementById('login-screen').style.display = 'none'; initApp(); }
-        };
-
-        function initApp() {
             db.ref('products').on('value', snap => { products = snap.val() ? Object.keys(snap.val()).map(k => ({id:k, ...snap.val()[k]})) : []; updateUI(); });
             db.ref('logs').limitToLast(15).on('value', snap => { logs = snap.val() ? Object.values(snap.val()).reverse() : []; renderLogs(); updateKasaOzet(); });
         }
 
         function startScanner() {
-            isScanningProcessing = false;
-            document.getElementById('scan-overlay').style.display = 'none';
-            document.getElementById('laser').style.display = 'block';
-            document.getElementById('btn-cancel').style.display = 'block';
-            Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-viewport'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader", "code_128_reader"] }, locate: true }, err => { if(!err) Quagga.start(); });
-            
-            Quagga.onDetected(res => { 
-                if(isScanningProcessing) return; 
-                isScanningProcessing = true; 
-                const code = res.codeResult.code;
-                stopScanner(); 
-                if(navigator.vibrate) navigator.vibrate(100); 
-                
-                const found = products.find(p => p.barcode === code); 
+            isScanningProcessing = false; document.getElementById('scan-overlay').style.display = 'none'; document.getElementById('laser').style.display = 'block'; document.getElementById('btn-cancel').style.display = 'block';
+            Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-viewport'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader", "code_128_reader"] } }, err => { if(!err) Quagga.start(); });
+            Quagga.onDetected(res => {
+                if(isScanningProcessing) return; isScanningProcessing = true; const code = res.codeResult.code; stopScanner();
+                const found = products.find(p => p.barcode === code);
                 if(found) {
-                    // ÜRÜN BULUNURSA: Belirlenen adet kadar düş
-                    const qtyToReduce = currentScanQty;
-                    const newStock = found.stock - qtyToReduce;
-                    const ciro = qtyToReduce * found.price;
-                    const profit = qtyToReduce * (found.price - (found.buyPrice || 0));
-
-                    db.ref('products/' + found.id).update({ stock: newStock }).then(() => {
-                        db.ref('logs').push({ pName: found.name, pImg: found.image || '', type: 'out', amount: qtyToReduce, ciro, profit, date: Date.now() });
-                        alert(`${found.name}: ${qtyToReduce} adet stoktan düşüldü.`);
-                        isScanningProcessing = false;
+                    const qty = currentScanQty;
+                    db.ref('products/' + found.id).update({ stock: found.stock - qty }).then(() => {
+                        db.ref('logs').push({ pName: found.name, pImg: found.image || '', type: 'out', amount: qty, ciro: qty * found.price, profit: qty * (found.price - (found.buyPrice || 0)), date: Date.now() });
+                        alert(`${qty} adet satıldı.`); isScanningProcessing = false;
                     });
-                } else {
-                    if(confirm("Yeni Ürün! Eklensin mi?")) { 
-                        document.getElementById('inp-barcode').value = code; 
-                        switchTab('add'); 
-                    }
-                    isScanningProcessing = false;
-                } 
+                } else { alert("Ürün bulunamadı!"); isScanningProcessing = false; }
             });
         }
 
         function stopScanner() { Quagga.stop(); document.getElementById('scan-overlay').style.display = 'flex'; document.getElementById('laser').style.display = 'none'; document.getElementById('btn-cancel').style.display = 'none'; }
-
-        function switchTab(id, lowOnly = false) {
-            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-            document.getElementById('tab-' + id).style.display = 'block';
-            let title = "Ana Sayfa";
-            if(id === 'scan') title = "Barkod Okut";
-            if(id === 'add') title = "Yeni Ürün";
-            if(id === 'products') title = "Depo";
-            document.getElementById('page-title').innerText = title;
-            if(id === 'products') renderList(lowOnly);
-        }
-
-        function updateProduct() {
-            const id = document.getElementById('edit-id').value;
-            const p = products.find(x => x.id === id);
-            const updated = {
-                name: document.getElementById('edit-name').value,
-                size: document.getElementById('edit-size').value,
-                stock: Number(document.getElementById('edit-stock').value),
-                minStock: Number(document.getElementById('edit-min').value),
-                price: Number(document.getElementById('edit-price').value),
-                buyPrice: Number(document.getElementById('edit-buy').value)
-            };
-            const diff = updated.stock - p.stock;
-            db.ref('products/' + id).update(updated).then(() => {
-                if(diff !== 0) {
-                    const profit = diff < 0 ? Math.abs(diff) * (updated.price - (updated.buyPrice || 0)) : 0;
-                    const ciro = diff < 0 ? Math.abs(diff) * updated.price : 0;
-                    db.ref('logs').push({ pName: updated.name, pImg: p.image || '', type: diff > 0 ? 'in' : 'out', amount: Math.abs(diff), ciro, profit, date: Date.now() });
-                }
-                closeModal();
-            });
-        }
-
+        function switchTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none'); document.getElementById('tab-' + id).style.display = 'block'; }
+        
         function updateUI() {
             const tCost = products.reduce((a,b) => a + (Number(b.stock || 0) * Number(b.buyPrice || 0)), 0);
-            const tLow = products.filter(p => Number(p.stock) <= Number(p.minStock || 5)).length;
             document.getElementById('d-count').innerText = products.length;
             document.getElementById('d-value').innerText = '₺' + tCost.toLocaleString('tr-TR');
-            document.getElementById('d-low').innerText = tLow;
+            document.getElementById('d-low').innerText = products.filter(p => Number(p.stock) <= 5).length;
             renderList();
         }
 
-        function renderList(onlyLow = false) {
-            const s = document.getElementById('search-box').value.toLowerCase();
+        function renderList() {
             const cont = document.getElementById('list-container');
-            let filtered = products.filter(p => p.name.toLowerCase().includes(s) || p.barcode.includes(s));
-            if(onlyLow) filtered = filtered.filter(p => Number(p.stock) <= Number(p.minStock || 5));
-            cont.innerHTML = filtered.map(p => `<div class="item-card" onclick="openEdit('${p.id}')"><img src="${p.image || 'https://via.placeholder.com/60'}" class="item-img"><div style="flex:1"><b>${p.name}</b><small>${p.barcode} • ${p.size || 'STD'}</small></div><div style="text-align:right"><b style="${Number(p.stock)<=Number(p.minStock)?'color:var(--red)':''}">${p.stock}</b><small>₺${p.price}</small></div></div>`).join('');
+            if(!cont) return;
+            cont.innerHTML = products.map(p => `<div class="item-card"><img src="${p.image || 'https://via.placeholder.com/60'}" class="item-img"><div style="flex:1"><b>${p.name}</b><small>${p.barcode}</small></div><div style="text-align:right"><b>${p.stock}</b><br><small>₺${p.price}</small></div></div>`).join('');
         }
 
-        function openEdit(id) { const p = products.find(x => x.id === id); document.getElementById('edit-id').value = id; document.getElementById('edit-barcode').value = p.barcode; document.getElementById('edit-name').value = p.name; document.getElementById('edit-size').value = p.size || ""; document.getElementById('edit-stock').value = p.stock; document.getElementById('edit-min').value = p.minStock || 5; document.getElementById('edit-price').value = p.price; document.getElementById('edit-buy').value = p.buyPrice || 0; document.getElementById('modal-img').src = p.image || ''; document.getElementById('modal-name-text').innerText = p.name; document.getElementById('modal-barcode-text').innerText = p.barcode; document.getElementById('modal-edit').classList.add('active'); }
-        function saveProduct() { const p = { barcode: document.getElementById('inp-barcode').value, name: document.getElementById('inp-name').value, size: document.getElementById('inp-size').value, buyPrice: Number(document.getElementById('inp-buy').value), price: Number(document.getElementById('inp-price').value), stock: Number(document.getElementById('inp-stock').value), minStock: Number(document.getElementById('inp-min').value) || 5, image: tempImg }; db.ref('products').push(p).then(() => { tempImg = ""; document.querySelectorAll('#tab-add input').forEach(i => i.value = ""); document.getElementById('add-img-preview').style.display='none'; switchTab('products'); }); }
-        function previewImg(input, target) { if(input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { tempImg = e.target.result; document.getElementById(target).src = tempImg; document.getElementById(target).style.display = 'block'; document.getElementById('add-icon').style.display='none'; }; r.readAsDataURL(input.files[0]); } }
-        function renderLogs() { const cont = document.getElementById('log-container'); if(!cont) return; cont.innerHTML = logs.map(l => `<div class="item-card"><img src="${l.pImg || 'https://via.placeholder.com/60'}" class="item-img"><div style="flex:1"><b>${l.pName}</b><small>${l.type==='out'?'SATIŞ':'GİRİŞ'}</small></div><b style="color:${l.type==='out'?'var(--red)':'var(--green)'}">${l.type==='out'?'-':'+'}${l.amount}</b></div>`).join(''); }
-        function updateKasaOzet() { const today = new Date().toLocaleDateString(); const tLogs = logs.filter(l => new Date(l.date).toLocaleDateString() === today); const ciro = tLogs.reduce((a,b) => a + (b.ciro || 0), 0); const profit = tLogs.reduce((a,b) => a + (b.profit || 0), 0); document.getElementById('daily-ciro').innerText = 'Satış: ₺' + ciro.toLocaleString('tr-TR'); document.getElementById('daily-profit').innerText = '₺' + profit.toLocaleString('tr-TR', {minimumFractionDigits: 2}); }
-        function closeModal() { document.getElementById('modal-edit').classList.remove('active'); }
-        function deleteProduct() { if(confirm("Emin misiniz?")) db.ref('products/'+document.getElementById('edit-id').value).remove().then(()=>closeModal()); }
+        function renderLogs() {
+            const cont = document.getElementById('log-container');
+            if(!cont) return;
+            cont.innerHTML = logs.map(l => `<div class="item-card"><img src="${l.pImg || 'https://via.placeholder.com/60'}" class="item-img"><div style="flex:1"><b>${l.pName}</b><small>${l.type==='out'?'SATIŞ':'GİRİŞ'}</small></div><b style="color:${l.type==='out'?'var(--red)':'var(--green)'}">${l.type==='out'?'-':'+'}${l.amount}</b></div>`).join('');
+        }
+
+        function updateKasaOzet() {
+            const today = new Date().toLocaleDateString();
+            const tLogs = logs.filter(l => new Date(l.date).toLocaleDateString() === today);
+            const ciro = tLogs.reduce((a,b) => a + (b.ciro || 0), 0);
+            const profit = tLogs.reduce((a,b) => a + (b.profit || 0), 0);
+            document.getElementById('daily-ciro').innerText = 'Satış: ₺' + ciro.toLocaleString('tr-TR');
+            document.getElementById('daily-profit').innerText = '₺' + profit.toLocaleString('tr-TR', {minimumFractionDigits: 2});
+        }
+
+        function saveProduct() {
+            const p = { barcode: document.getElementById('inp-barcode').value, name: document.getElementById('inp-name').value, buyPrice: Number(document.getElementById('inp-buy').value), price: Number(document.getElementById('inp-price').value), stock: Number(document.getElementById('inp-stock').value), minStock: 5 };
+            db.ref('products').push(p).then(() => { switchTab('dashboard'); });
+        }
+        
         function clearPin() { currentPin = ""; updateDots(); }
     </script>
 </body>
