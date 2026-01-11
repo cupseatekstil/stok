@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Stok Pro v10.9 (Offline Modlu)</title>
+    <title>Stok Pro v10.9</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -28,6 +28,13 @@
         body { background: var(--bg); color: var(--text-main); padding-bottom: 100px; transition: background 0.3s, color 0.3s; }
 
         #ver-tag { position: fixed; top: 8px; left: 10px; font-size: 10px; font-weight: 800; color: var(--label); z-index: 10001; text-transform: uppercase; pointer-events: none; }
+
+        /* OFFLINE/ONLINE BADGE */
+        #connection-status { position: fixed; top: 8px; right: 10px; padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; z-index: 10001; display: flex; align-items: center; gap: 5px; }
+        #connection-status.online { background: rgba(52, 199, 89, 0.15); color: var(--green); }
+        #connection-status.offline { background: rgba(255, 59, 48, 0.15); color: var(--red); }
+        #connection-status .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         /* --- LOGIN SCREEN --- */
         #login-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -76,6 +83,12 @@
 <body data-theme="light">
     
     <div id="ver-tag">STOK PRO V10.9</div>
+
+    <!-- OFFLINE/ONLINE DURUM GÖSTERGESI -->
+    <div id="connection-status" class="online">
+        <div class="dot"></div>
+        <span id="status-text">ONLINE</span>
+    </div>
 
     <div id="login-screen">
         <img src="https://i.ibb.co/7d5L2PpC/white-text-transparent-bg-1.png" class="login-logo" alt="Logo">
@@ -188,6 +201,120 @@
         const db = firebase.database();
         let products = [], logs = [], currentPin = "", currentScanQty = 1, isScanningProcessing = false, tempImg = "";
 
+        // ==================== OFFLINE/ONLINE SİSTEMİ ====================
+        let isOnline = navigator.onLine;
+
+        // BAGLANTI DURUMUNU GÜNCELLE
+        function updateConnectionStatus() {
+            const badge = document.getElementById('connection-status');
+            const statusText = document.getElementById('status-text');
+            
+            if(isOnline) {
+                badge.className = 'online';
+                statusText.innerText = 'ONLINE';
+                syncPendingData(); // Internet geldiğinde bekleyen verileri gönder
+            } else {
+                badge.className = 'offline';
+                statusText.innerText = 'OFFLINE';
+            }
+        }
+
+        // BEKLEYEN VERİLERİ FIREBASE'E GÖNDER
+        function syncPendingData() {
+            const pendingStock = JSON.parse(localStorage.getItem('pendingStockUpdates') || '[]');
+            const pendingLogs = JSON.parse(localStorage.getItem('pendingLogs') || '[]');
+            const pendingProducts = JSON.parse(localStorage.getItem('pendingProducts') || '[]');
+
+            // STOK GÜNCELLEMELERİ
+            pendingStock.forEach(item => {
+                db.ref('products/' + item.id).update({ stock: item.stock }).then(() => {
+                    console.log('Offline stok senkronize edildi:', item.name);
+                }).catch(err => console.error('Senkronizasyon hatası:', err));
+            });
+
+            // LOG KAYITLARI
+            pendingLogs.forEach(log => {
+                db.ref('logs').push(log).then(() => {
+                    console.log('Offline log senkronize edildi');
+                }).catch(err => console.error('Log senkronizasyon hatası:', err));
+            });
+
+            // YENİ ÜRÜNLER
+            pendingProducts.forEach(prod => {
+                db.ref('products').push(prod).then(() => {
+                    console.log('Offline ürün senkronize edildi:', prod.name);
+                }).catch(err => console.error('Ürün senkronizasyon hatası:', err));
+            });
+
+            // Tüm senkronizasyonlar başarılıysa localStorage'ı temizle
+            if(pendingStock.length > 0 || pendingLogs.length > 0 || pendingProducts.length > 0) {
+                setTimeout(() => {
+                    localStorage.removeItem('pendingStockUpdates');
+                    localStorage.removeItem('pendingLogs');
+                    localStorage.removeItem('pendingProducts');
+                    alert('Offline veriler senkronize edildi! ✅');
+                }, 1000);
+            }
+        }
+
+        // INTERNET DURUMUNU DİNLE
+        window.addEventListener('online', () => {
+            isOnline = true;
+            updateConnectionStatus();
+        });
+
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            updateConnectionStatus();
+        });
+
+        // OFFLINE STOK GÜNCELLEME
+        function updateStockOffline(productId, productName, newStock) {
+            const pending = JSON.parse(localStorage.getItem('pendingStockUpdates') || '[]');
+            const existingIndex = pending.findIndex(p => p.id === productId);
+            
+            if(existingIndex >= 0) {
+                pending[existingIndex].stock = newStock;
+            } else {
+                pending.push({ id: productId, name: productName, stock: newStock });
+            }
+            
+            localStorage.setItem('pendingStockUpdates', JSON.stringify(pending));
+            
+            // LOCAL products dizisini de güncelle
+            const prodIndex = products.findIndex(p => p.id === productId);
+            if(prodIndex >= 0) {
+                products[prodIndex].stock = newStock;
+                updateUI();
+            }
+        }
+
+        // OFFLINE LOG KAYDI
+        function addLogOffline(logData) {
+            const pending = JSON.parse(localStorage.getItem('pendingLogs') || '[]');
+            pending.push(logData);
+            localStorage.setItem('pendingLogs', JSON.stringify(pending));
+            
+            // LOCAL logs dizisine ekle
+            logs.unshift(logData);
+            renderLogs();
+            updateKasaOzet();
+        }
+
+        // OFFLINE ÜRÜN EKLEME
+        function addProductOffline(productData) {
+            const pending = JSON.parse(localStorage.getItem('pendingProducts') || '[]');
+            pending.push(productData);
+            localStorage.setItem('pendingProducts', JSON.stringify(pending));
+            
+            // LOCAL products dizisine ekle (geçici ID ile)
+            const tempId = 'temp_' + Date.now();
+            products.push({ id: tempId, ...productData });
+            updateUI();
+        }
+
+        // ==================== MEVCUT FONKSİYONLAR (OFFLINE DESTEĞİ EKLENDİ) ====================
+
         // PIN
         function enterPin(n) { if(currentPin.length < 6) { currentPin += n; updateDots(); if(currentPin.length === 6) setTimeout(submitPin, 100); } }
         function updateDots() { document.querySelectorAll('.pin-dot').forEach((d, i) => d.classList.toggle('active', i < currentPin.length)); }
@@ -207,12 +334,42 @@
         window.onload = () => {
             const date = new Date();
             document.getElementById('header-date').innerText = date.toLocaleDateString('tr-TR', { day:'numeric', month:'long' }).toUpperCase();
+            updateConnectionStatus(); // Bağlantı durumunu kontrol et
             if(localStorage.getItem('stokAuth') === 'true') { document.getElementById('login-screen').style.display = 'none'; initApp(); }
         };
 
         function initApp() {
-            db.ref('products').on('value', snap => { const data = snap.val(); products = data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : []; updateUI(); });
-            db.ref('logs').limitToLast(15).on('value', snap => { logs = snap.val() ? Object.values(snap.val()).reverse() : []; renderLogs(); updateKasaOzet(); });
+            // Firebase'den veri çekmeyi dene
+            db.ref('products').on('value', snap => { 
+                const data = snap.val(); 
+                products = data ? Object.keys(data).map(k => ({id:k, ...data[k]})) : []; 
+                
+                // Offline eklenen ürünleri de göster
+                const offlineProducts = JSON.parse(localStorage.getItem('pendingProducts') || '[]');
+                offlineProducts.forEach(p => {
+                    if(!products.find(pr => pr.barcode === p.barcode)) {
+                        products.push({ id: 'temp_' + Date.now(), ...p });
+                    }
+                });
+                
+                updateUI(); 
+            }, error => {
+                // Firebase'e bağlanamazsa local verileri kullan
+                console.warn('Firebase bağlantısı yok, local veriler kullanılıyor');
+                isOnline = false;
+                updateConnectionStatus();
+            });
+            
+            db.ref('logs').limitToLast(15).on('value', snap => { 
+                logs = snap.val() ? Object.values(snap.val()).reverse() : []; 
+                
+                // Offline loglari da ekle
+                const offlineLogs = JSON.parse(localStorage.getItem('pendingLogs') || '[]');
+                logs = [...offlineLogs, ...logs];
+                
+                renderLogs(); 
+                updateKasaOzet(); 
+            });
         }
 
         function startScanner() {
@@ -224,29 +381,41 @@
             Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#scanner-viewport'), constraints: { facingMode: "environment" } }, locator: { patchSize: "large", halfSample: false }, decoder: { readers: ["ean_reader", "code_128_reader"] } }, err => { if(!err) Quagga.start(); });
             
             Quagga.onDetected(res => {
-                // ÇOKLU OKUMA ENGELLEYİCİ
                 if(isScanningProcessing) return; 
                 isScanningProcessing = true;
                 
                 const code = res.codeResult.code;
-                Quagga.stop(); // Okunduğu an kamerayı durdurur
+                Quagga.stop();
 
                 const found = products.find(p => p.barcode === code);
                 if(found) {
                     const qty = currentScanQty;
+                    const newStock = found.stock - qty;
+                    const logData = { 
+                        pName: found.name, 
+                        pImg: found.image || '', 
+                        type: 'out', 
+                        amount: qty, 
+                        ciro: qty * found.price, 
+                        profit: qty * (found.price - (found.buyPrice || 0)), 
+                        date: Date.now() 
+                    };
                     
-                    // --- GÜNCELLENEN BÖLÜM: OFFLINE DESTEĞİ ---
-                    // İnternet onayını beklemeden işlemleri sıraya alır
-                    db.ref('products/' + found.id).update({ stock: found.stock - qty });
-                    db.ref('logs').push({ pName: found.name, pImg: found.image || '', type: 'out', amount: qty, ciro: qty * found.price, profit: qty * (found.price - (found.buyPrice || 0)), date: Date.now() });
-                    
-                    // Kullanıcıya hemen bilgi ver (İnterneti beklemez)
-                    alert(`${found.name}: ${qty} Satıldı.`); 
-                    stopScanner();
-                    // -------------------------------------------
-
+                    if(isOnline) {
+                        // ONLINE: Firebase'e kaydet
+                        db.ref('products/' + found.id).update({ stock: newStock }).then(() => {
+                            db.ref('logs').push(logData);
+                            alert(`${found.name}: ${qty} Satıldı.`); 
+                            stopScanner();
+                        });
+                    } else {
+                        // OFFLINE: LocalStorage'a kaydet
+                        updateStockOffline(found.id, found.name, newStock);
+                        addLogOffline(logData);
+                        alert(`${found.name}: ${qty} Satıldı (Offline)\nİnternet geldiğinde senkronize edilecek.`);
+                        stopScanner();
+                    }
                 } else {
-                    // ÜST ÜSTE CONFIRM ÇIKMASINI ENGELLER
                     setTimeout(() => {
                         if(confirm("Yeni Ürün Eklensin mi? \nBarkod: " + code)) { 
                             document.getElementById('inp-barcode').value = code; 
@@ -254,7 +423,7 @@
                             stopScanner();
                         } else {
                             isScanningProcessing = false;
-                            startScanner(); // İptal edilirse tekrar başla
+                            startScanner();
                         }
                     }, 300);
                 }
@@ -307,19 +476,57 @@
 
         function updateProduct() {
             const id = document.getElementById('edit-id').value;
-            db.ref('products/' + id).update({
+            const updateData = {
                 name: document.getElementById('edit-name').value,
                 size: document.getElementById('edit-size').value,
                 stock: Number(document.getElementById('edit-stock').value),
                 minStock: Number(document.getElementById('edit-min').value),
                 price: Number(document.getElementById('edit-price').value),
                 buyPrice: Number(document.getElementById('edit-buy').value)
-            }).then(closeModal);
+            };
+            
+            if(isOnline) {
+                db.ref('products/' + id).update(updateData).then(closeModal);
+            } else {
+                // Offline güncelleme
+                const prodIndex = products.findIndex(p => p.id === id);
+                if(prodIndex >= 0) {
+                    Object.assign(products[prodIndex], updateData);
+                    updateUI();
+                }
+                alert('Offline güncellendi. Internet geldiğinde senkronize edilecek.');
+                closeModal();
+            }
         }
 
         function saveProduct() {
-            const p = { barcode: document.getElementById('inp-barcode').value, name: document.getElementById('inp-name').value, size: document.getElementById('inp-size').value, buyPrice: Number(document.getElementById('inp-buy').value), price: Number(document.getElementById('inp-price').value), stock: Number(document.getElementById('inp-stock').value), minStock: Number(document.getElementById('inp-min').value) || 5, image: tempImg };
-            db.ref('products').push(p).then(() => { tempImg = ""; document.getElementById('add-img-preview').style.display='none'; document.querySelectorAll('#tab-add input').forEach(i => i.value = ""); switchTab('dashboard'); });
+            const p = { 
+                barcode: document.getElementById('inp-barcode').value, 
+                name: document.getElementById('inp-name').value, 
+                size: document.getElementById('inp-size').value, 
+                buyPrice: Number(document.getElementById('inp-buy').value), 
+                price: Number(document.getElementById('inp-price').value), 
+                stock: Number(document.getElementById('inp-stock').value), 
+                minStock: Number(document.getElementById('inp-min').value) || 5, 
+                image: tempImg 
+            };
+            
+            if(isOnline) {
+                db.ref('products').push(p).then(() => { 
+                    tempImg = ""; 
+                    document.getElementById('add-img-preview').style.display='none'; 
+                    document.querySelectorAll('#tab-add input').forEach(i => i.value = ""); 
+                    switchTab('dashboard'); 
+                });
+            } else {
+                // Offline ekleme
+                addProductOffline(p);
+                tempImg = ""; 
+                document.getElementById('add-img-preview').style.display='none'; 
+                document.querySelectorAll('#tab-add input').forEach(i => i.value = ""); 
+                alert('Ürün offline eklendi. Internet geldiğinde senkronize edilecek.');
+                switchTab('dashboard');
+            }
         }
 
         function previewImg(input, target) {
@@ -346,7 +553,20 @@
         }
 
         function closeModal() { document.getElementById('modal-edit').classList.remove('active'); }
-        function deleteProduct() { if(confirm("Silinsin mi?")) db.ref('products/'+document.getElementById('edit-id').value).remove().then(closeModal); }
+        function deleteProduct() { 
+            if(confirm("Silinsin mi?")) {
+                const id = document.getElementById('edit-id').value;
+                if(isOnline) {
+                    db.ref('products/' + id).remove().then(closeModal);
+                } else {
+                    // Offline silme
+                    products = products.filter(p => p.id !== id);
+                    updateUI();
+                    alert('Offline silindi. Internet geldiğinde senkronize edilecek.');
+                    closeModal();
+                }
+            }
+        }
     </script>
 </body>
 </html>
