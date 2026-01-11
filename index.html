@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Stok Pro v10.9</title>
+    <title>Stok Pro v10.9 (Offline Modlu)</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -234,11 +234,17 @@
                 const found = products.find(p => p.barcode === code);
                 if(found) {
                     const qty = currentScanQty;
-                    db.ref('products/' + found.id).update({ stock: found.stock - qty }).then(() => {
-                        db.ref('logs').push({ pName: found.name, pImg: found.image || '', type: 'out', amount: qty, ciro: qty * found.price, profit: qty * (found.price - (found.buyPrice || 0)), date: Date.now() });
-                        alert(`${found.name}: ${qty} Satıldı.`); 
-                        stopScanner();
-                    });
+                    
+                    // --- GÜNCELLENEN BÖLÜM: OFFLINE DESTEĞİ ---
+                    // İnternet onayını beklemeden işlemleri sıraya alır
+                    db.ref('products/' + found.id).update({ stock: found.stock - qty });
+                    db.ref('logs').push({ pName: found.name, pImg: found.image || '', type: 'out', amount: qty, ciro: qty * found.price, profit: qty * (found.price - (found.buyPrice || 0)), date: Date.now() });
+                    
+                    // Kullanıcıya hemen bilgi ver (İnterneti beklemez)
+                    alert(`${found.name}: ${qty} Satıldı.`); 
+                    stopScanner();
+                    // -------------------------------------------
+
                 } else {
                     // ÜST ÜSTE CONFIRM ÇIKMASINI ENGELLER
                     setTimeout(() => {
